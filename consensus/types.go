@@ -6,6 +6,10 @@ type Block struct {
 
 	PrevBlockHash []byte
 
+	Round int
+
+	Payload []byte
+
 	// Signature of the issuer
 	Signature []byte
 }
@@ -18,7 +22,9 @@ type BlockChunk struct {
 
 	ChunkIndex int
 
-	Authenticator MerkleAuthenticator
+	Authenticator ChunkAuthenticator
+
+	Payload []byte
 
 	Signature []byte
 
@@ -35,9 +41,9 @@ type Vote struct {
 	hash []byte
 }
 
-type MerkleAuthenticator struct {
+type ChunkAuthenticator struct {
 	// The last element is root
 	Hashes [][]byte
 
-	MerkleRootSignature []byte
+	SignatureOnRoot []byte
 }
