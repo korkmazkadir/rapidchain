@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/rpc"
 
-	"../consensus"
+	"github.com/korkmazkadir/rapidchain/consensus"
 )
 
 // Client implements P2P client

@@ -5,14 +5,57 @@ import (
 	"encoding/gob"
 	"fmt"
 	"math"
+
+	"github.com/cbergoon/merkletree"
 )
 
 func chunkBlock(block Block, numberOfChunks int) []BlockChunk {
 
 	blockBytes := encodeToBytes(block)
 	chunks := constructChunks(block, blockBytes, numberOfChunks)
+	createAuthenticators(chunks)
 
 	return chunks
+}
+
+// mergeChunks assumes that sanity checks are done before calling this function
+func mergeChunks(chunks []BlockChunk) Block {
+
+	var blockData []byte
+	for i := 0; i < len(chunks); i++ {
+		blockData = append(blockData, chunks[i].Payload...)
+	}
+
+	return decodeToBlock(blockData)
+}
+
+func createAuthenticators(chunks []BlockChunk) {
+
+	// construct merkletree
+	var content []merkletree.Content
+	for _, c := range chunks {
+		content = append(content, c)
+	}
+
+	tree, err := merkletree.NewTree(content)
+	if err != nil {
+		panic(err)
+	}
+
+	// calculates the root of the merkle tree
+	merkleRoot := tree.MerkleRoot()
+
+	// creates merklepath for each chunk
+	for i := 0; i < len(chunks); i++ {
+		path, index, err := tree.GetMerklePath(chunks[i])
+		if err != nil {
+			panic(err)
+		}
+
+		authenticator := ChunkAuthenticator{MerkleRoot: merkleRoot, Path: path, Index: index}
+		chunks[i].Authenticator = authenticator
+	}
+
 }
 
 func constructChunks(block Block, blockBytes []byte, numberOfChunks int) []BlockChunk {
@@ -29,12 +72,19 @@ func constructChunks(block Block, blockBytes []byte, numberOfChunks int) []Block
 		startIndex := i * chunkSize
 		endIndex := startIndex + chunkSize
 
+		var payload []byte
+		if i < (numberOfChunks - 1) {
+			payload = blockBytes[startIndex:endIndex]
+		} else {
+			payload = blockBytes[startIndex:]
+		}
+
 		chunk := BlockChunk{
 			Issuer:     block.Issuer,
 			Round:      block.Round,
+			ChunkCount: numberOfChunks,
 			ChunkIndex: i,
-			Payload:    blockBytes[startIndex:endIndex],
-			// TODO hash:
+			Payload:    payload,
 		}
 
 		chunks = append(chunks, chunk)
@@ -54,4 +104,15 @@ func encodeToBytes(p interface{}) []byte {
 	}
 
 	return buf.Bytes()
+}
+
+func decodeToBlock(data []byte) Block {
+
+	block := Block{}
+	dec := gob.NewDecoder(bytes.NewReader(data))
+	err := dec.Decode(&block)
+	if err != nil {
+		panic(err)
+	}
+	return block
 }

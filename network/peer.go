@@ -3,7 +3,7 @@ package network
 import (
 	"errors"
 
-	"../consensus"
+	"github.com/korkmazkadir/rapidchain/consensus"
 )
 
 var NoCorrectPeerAvailable = errors.New("there are no correct peers available")

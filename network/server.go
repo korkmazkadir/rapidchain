@@ -1,7 +1,7 @@
 package network
 
 import (
-	"../consensus"
+	"github.com/korkmazkadir/rapidchain/consensus"
 )
 
 type P2PServer struct {
