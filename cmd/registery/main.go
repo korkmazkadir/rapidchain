@@ -20,7 +20,10 @@ func main() {
 
 	nodeRegistry := registry.NewNodeRegistry(nodeConfig)
 
-	rpc.Register(nodeRegistry)
+	err := rpc.Register(nodeRegistry)
+	if err != nil {
+		panic(err)
+	}
 
 	rpc.HandleHTTP()
 	l, e := net.Listen("tcp", ":1234")

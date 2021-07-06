@@ -24,6 +24,17 @@ type RapidchainConsensus struct {
 	keySecret  []byte
 }
 
+func NewRapidchain(demux *common.Demux, config registry.NodeConfig, peerSet network.PeerSet) *RapidchainConsensus {
+
+	rapidchain := &RapidchainConsensus{
+		demultiplexer: demux,
+		nodeConfig:    config,
+		peerSet:       peerSet,
+	}
+
+	return rapidchain
+}
+
 func (c *RapidchainConsensus) Propose(round int, block common.Block, previousBlockHash []byte) (common.Block, error) {
 
 	// sets the round for demultiplexer
