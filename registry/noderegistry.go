@@ -89,6 +89,8 @@ func (nr *NodeRegistry) GetConfig(nodeInfo *NodeInfo, config *NodeConfig) error 
 	nr.mutex.Lock()
 	defer nr.mutex.Unlock()
 
+	config.CopyFields(nr.config)
+
 	return nil
 }
 
