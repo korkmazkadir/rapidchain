@@ -116,3 +116,37 @@ func decodeToBlock(data []byte) Block {
 	}
 	return block
 }
+
+// VerifyContentWithPath verifies content using path information comming from GetMerklePath function, and Merkle root.
+func VerifyContentWithPath(merkleRoot []byte, content merkletree.Content, path [][]byte, index []int64) (bool, error) {
+
+	if len(path) != len(index) {
+		return false, fmt.Errorf("path or index argument is wrong")
+	}
+
+	calculatedRoot, err := content.CalculateHash()
+	if err != nil {
+		return false, err
+	}
+
+	hashStrategy := defaultHashStrategy()
+
+	for i := 0; i < len(path); i++ {
+
+		h := hashStrategy()
+		if index[i] == 0 {
+			_, err = h.Write(append(path[i], calculatedRoot...))
+			calculatedRoot = h.Sum(nil)
+		} else {
+			_, err = h.Write(append(calculatedRoot, path[i]...))
+			calculatedRoot = h.Sum(nil)
+		}
+
+		if err != nil {
+			return false, err
+		}
+
+	}
+
+	return bytes.Equal(merkleRoot, calculatedRoot), nil
+}
