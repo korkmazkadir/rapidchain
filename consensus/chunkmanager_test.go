@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"crypto/rand"
 	"testing"
-
-	"github.com/cbergoon/merkletree"
 )
 
 func TestChunkBlock(t *testing.T) {
@@ -25,7 +23,7 @@ func TestChunkBlock(t *testing.T) {
 	}
 
 	for _, c := range chunks {
-		result, err := merkletree.VerifyContentWithPath(c.Authenticator.MerkleRoot, c, c.Authenticator.Path, c.Authenticator.Index)
+		result, err := VerifyContentWithPath(c.Authenticator.MerkleRoot, c, c.Authenticator.Path, c.Authenticator.Index)
 		if err != nil {
 			t.Errorf("error occured during chunk verification chunk path %s", err)
 		}

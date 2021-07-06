@@ -2,6 +2,7 @@ package consensus
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
 	"math"
@@ -129,7 +130,8 @@ func VerifyContentWithPath(merkleRoot []byte, content merkletree.Content, path [
 		return false, err
 	}
 
-	hashStrategy := defaultHashStrategy()
+	// assumes this is same with merkletree package
+	hashStrategy := sha256.New
 
 	for i := 0; i < len(path); i++ {
 
