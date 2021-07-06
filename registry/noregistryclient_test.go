@@ -57,7 +57,10 @@ func TestRegistryClient(t *testing.T) {
 	registryAddress := "localhost:1234"
 	registryClient := NewRegistryClient(registryAddress, nodeInfo)
 
-	registryClient.RegisterNode()
+	nodeInfo.ID = registryClient.RegisterNode()
+	if nodeInfo.ID == 0 {
+		t.Error("registery did not assign a node id")
+	}
 
 	// test get node config
 	nodeConfig := nodeConfigTestInstance()

@@ -9,6 +9,7 @@ import (
 
 // NodeInfo keeps node info
 type NodeInfo struct {
+	ID         int
 	IPAddress  string
 	PortNumber int
 }
@@ -36,13 +37,21 @@ func NewNodeRegistry(config NodeConfig) *NodeRegistry {
 }
 
 // Register registers a node with specific node info
-func (nr *NodeRegistry) Register(nodeInfo *NodeInfo, reply *int) error {
+func (nr *NodeRegistry) Register(nodeInfo *NodeInfo, reply *NodeInfo) error {
 
 	nr.mutex.Lock()
 	defer nr.mutex.Unlock()
 
+	// assigns a node ID. smallest node ID is 1
+	nodeID := len(nr.registeredNodes) + 1
+	nodeInfo.ID = nodeID
+
 	nr.registeredNodes = append(nr.registeredNodes, *nodeInfo)
 	log.Printf("new node registered; ip address %s port number %d, registered node count: %d\n", nodeInfo.IPAddress, nodeInfo.PortNumber, len(nr.registeredNodes))
+
+	reply.IPAddress = nodeInfo.IPAddress
+	reply.PortNumber = nodeInfo.PortNumber
+	reply.ID = nodeInfo.ID
 
 	return nil
 }

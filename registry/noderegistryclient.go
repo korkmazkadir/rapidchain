@@ -21,13 +21,15 @@ func NewRegistryClient(registryAddress string, currentNodeInfo NodeInfo) Registr
 	return registryClient
 }
 
-func (rc RegistryClient) RegisterNode() {
+// RegisterNode registers a node and returns assigned node ID
+func (rc RegistryClient) RegisterNode() int {
 
-	err := rc.rpcClient.Call("NodeRegistry.Register", rc.nodeInfo, nil)
+	err := rc.rpcClient.Call("NodeRegistry.Register", rc.nodeInfo, &rc.nodeInfo)
 	if err != nil {
 		panic(err)
 	}
 
+	return rc.nodeInfo.ID
 }
 
 func (rc RegistryClient) GetConfig() NodeConfig {

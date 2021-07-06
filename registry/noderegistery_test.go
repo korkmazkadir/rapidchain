@@ -19,9 +19,13 @@ func TestRegistry(t *testing.T) {
 
 	// test register function
 	nodeInfo := &NodeInfo{IPAddress: "abc", PortNumber: 6349}
-	err := nodeRegistry.Register(nodeInfo, nil)
+	err := nodeRegistry.Register(nodeInfo, nodeInfo)
 	if err != nil {
 		t.Error(err)
+	}
+
+	if nodeInfo.ID == 0 {
+		t.Error("registery did not assign a node id")
 	}
 
 	// test get config function
