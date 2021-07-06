@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/rpc"
 
-	"github.com/korkmazkadir/rapidchain/consensus"
+	"github.com/korkmazkadir/rapidchain/common"
 )
 
 // Client implements P2P client
@@ -14,8 +14,8 @@ type P2PClient struct {
 
 	rpcClient *rpc.Client
 
-	blockChunks chan consensus.BlockChunk
-	votes       chan consensus.Vote
+	blockChunks chan common.BlockChunk
+	votes       chan common.Vote
 
 	err error
 }
@@ -33,8 +33,8 @@ func NewClient(IPAddress string, portNumber int) (*P2PClient, error) {
 	client.portNumber = portNumber
 	client.rpcClient = rpcClient
 
-	client.blockChunks = make(chan consensus.BlockChunk, 1024)
-	client.votes = make(chan consensus.Vote, 1024)
+	client.blockChunks = make(chan common.BlockChunk, 1024)
+	client.votes = make(chan common.Vote, 1024)
 
 	return client, nil
 }
@@ -46,13 +46,13 @@ func (c *P2PClient) Start() {
 }
 
 // SendBlockChunk enques a chunk of a block to send
-func (c *P2PClient) SendBlockChunk(chunk consensus.BlockChunk) {
+func (c *P2PClient) SendBlockChunk(chunk common.BlockChunk) {
 
 	c.blockChunks <- chunk
 }
 
 // SendVote enques a vote to send
-func (c *P2PClient) SendVote(vote consensus.Vote) {
+func (c *P2PClient) SendVote(vote common.Vote) {
 
 	c.votes <- vote
 }

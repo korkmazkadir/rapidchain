@@ -3,7 +3,7 @@ package network
 import (
 	"errors"
 
-	"github.com/korkmazkadir/rapidchain/consensus"
+	"github.com/korkmazkadir/rapidchain/common"
 )
 
 var NoCorrectPeerAvailable = errors.New("there are no correct peers available")
@@ -27,7 +27,7 @@ func (p *PeerSet) AddPeer(IPAddress string, portNumber int) error {
 	return nil
 }
 
-func (p *PeerSet) DissaminateChunks(chunks []consensus.BlockChunk) {
+func (p *PeerSet) DissaminateChunks(chunks []common.BlockChunk) {
 
 	for index, chunk := range chunks {
 		peer := p.selectPeer(index)
@@ -35,7 +35,7 @@ func (p *PeerSet) DissaminateChunks(chunks []consensus.BlockChunk) {
 	}
 }
 
-func (p *PeerSet) ForwardChunk(chunk consensus.BlockChunk) {
+func (p *PeerSet) ForwardChunk(chunk common.BlockChunk) {
 
 	forwardCount := 0
 	for _, peer := range p.peers {
@@ -51,7 +51,7 @@ func (p *PeerSet) ForwardChunk(chunk consensus.BlockChunk) {
 	}
 }
 
-func (p *PeerSet) ForwardVote(vote consensus.Vote) {
+func (p *PeerSet) ForwardVote(vote common.Vote) {
 
 	forwardCount := 0
 	for _, peer := range p.peers {
