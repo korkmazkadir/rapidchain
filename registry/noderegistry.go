@@ -2,6 +2,8 @@ package registry
 
 import (
 	"log"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -40,9 +42,45 @@ func (nr *NodeRegistry) Register(nodeInfo *NodeInfo, reply *int) error {
 	defer nr.mutex.Unlock()
 
 	nr.registeredNodes = append(nr.registeredNodes, *nodeInfo)
-	log.Printf("new node registered; ip address %s port number %d\n", nodeInfo.IPAddress, nodeInfo.PortNumber)
+	log.Printf("new node registered; ip address %s port number %d, registered node count: %d\n", nodeInfo.IPAddress, nodeInfo.PortNumber, len(nr.registeredNodes))
 
 	return nil
+}
+
+func (nr *NodeRegistry) Unregister(remoteAddress string) {
+	addressParts := strings.Split(remoteAddress, ":")
+
+	if len(addressParts) != 2 {
+		log.Printf("unknown address format, node couldnot unregistered %s \n", remoteAddress)
+		return
+	}
+
+	ipAddress := addressParts[0]
+	portNumber, err := strconv.Atoi(addressParts[1])
+	if err != nil {
+		log.Printf("could not parse the port number, error: %s, portnumber: %s\n", err, addressParts[1])
+		return
+	}
+
+	nr.mutex.Lock()
+	defer nr.mutex.Unlock()
+
+	nodeIndex := -1
+	for i := range nr.registeredNodes {
+		if nr.registeredNodes[i].IPAddress == ipAddress && nr.registeredNodes[i].PortNumber == portNumber {
+			nodeIndex = i
+			break
+		}
+	}
+
+	if nodeIndex == -1 {
+		log.Printf("could not find %s in the registered node list to unregister\n", remoteAddress)
+		return
+	}
+
+	nr.registeredNodes = append(nr.registeredNodes[:nodeIndex], nr.registeredNodes[nodeIndex+1:]...)
+	log.Printf("node %s unregistered successfully\n", remoteAddress)
+
 }
 
 // GetConfig is used to get config
@@ -67,9 +105,8 @@ func (nr *NodeRegistry) GetNodeList(nodeInfo *NodeInfo, nodeList *NodeList) erro
 
 func (nr *NodeRegistry) UploadLogs(logs *Logs, reply *int) error {
 
+	// writing byte to a file vs writing string
+	// https://gobyexample.com/writing-files
+
 	return nil
-}
-
-func saveLogs() {
-
 }
