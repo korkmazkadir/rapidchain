@@ -17,7 +17,7 @@ func TestDemultiplexer(t *testing.T) {
 	}
 
 	chunkCount := 128
-	chunks := chunkBlock(block, chunkCount)
+	chunks, _ := ChunkBlock(block, chunkCount)
 
 	for i := range chunks {
 		demux.EnqueBlockChunk(chunks[i])

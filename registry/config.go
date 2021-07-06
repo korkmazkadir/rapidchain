@@ -13,6 +13,8 @@ type NodeConfig struct {
 	EndRound int
 
 	GossipFanout int
+
+	BlockChunkCount int
 }
 
 func (nc NodeConfig) Hash() []byte {
@@ -34,4 +36,5 @@ func (nc *NodeConfig) CopyFields(cp NodeConfig) {
 	nc.EpochSeed = append(nc.EpochSeed, cp.EpochSeed...)
 	nc.EndRound = cp.EndRound
 	nc.GossipFanout = cp.GossipFanout
+	nc.BlockChunkCount = cp.BlockChunkCount
 }

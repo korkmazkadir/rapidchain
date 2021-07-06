@@ -10,17 +10,17 @@ import (
 	"github.com/cbergoon/merkletree"
 )
 
-func chunkBlock(block Block, numberOfChunks int) []BlockChunk {
+func ChunkBlock(block Block, numberOfChunks int) ([]BlockChunk, []byte) {
 
 	blockBytes := encodeToBytes(block)
 	chunks := constructChunks(block, blockBytes, numberOfChunks)
-	createAuthenticators(chunks)
+	merkleRootHash := createAuthenticators(chunks)
 
-	return chunks
+	return chunks, merkleRootHash
 }
 
 // mergeChunks assumes that sanity checks are done before calling this function
-func mergeChunks(chunks []BlockChunk) Block {
+func MergeChunks(chunks []BlockChunk) Block {
 
 	var blockData []byte
 	for i := 0; i < len(chunks); i++ {
@@ -30,7 +30,8 @@ func mergeChunks(chunks []BlockChunk) Block {
 	return decodeToBlock(blockData)
 }
 
-func createAuthenticators(chunks []BlockChunk) {
+// createAuthenticators returns mekle root
+func createAuthenticators(chunks []BlockChunk) []byte {
 
 	// construct merkletree
 	var content []merkletree.Content
@@ -57,6 +58,7 @@ func createAuthenticators(chunks []BlockChunk) {
 		chunks[i].Authenticator = authenticator
 	}
 
+	return merkleRoot
 }
 
 func constructChunks(block Block, blockBytes []byte, numberOfChunks int) []BlockChunk {

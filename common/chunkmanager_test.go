@@ -15,11 +15,15 @@ func TestChunkBlock(t *testing.T) {
 		PrevBlockHash: getRandomByteSlice(32),
 	}
 
-	chunks := chunkBlock(block, 128)
+	chunks, merkleRoot := ChunkBlock(block, 128)
 
 	chunkCount := len(chunks)
 	if chunkCount != 128 {
 		t.Errorf("expected 128 chunk received %d chunk", chunkCount)
+	}
+
+	if len(merkleRoot) != 32 {
+		t.Errorf("merkle root is not valid %x", merkleRoot)
 	}
 
 	for _, c := range chunks {
@@ -35,7 +39,7 @@ func TestChunkBlock(t *testing.T) {
 		//t.Logf("Len(payload) %d", len(c.Payload))
 	}
 
-	mergedBlock := mergeChunks(chunks)
+	mergedBlock := MergeChunks(chunks)
 
 	if mergedBlock.Round != block.Round {
 		t.Errorf("expected round %d, received round %d", block.Round, mergedBlock.Round)
