@@ -63,10 +63,10 @@ func (c *P2PClient) mainLoop() {
 		select {
 
 		case blockChunk := <-c.blockChunks:
-			c.rpcClient.Call("Server.HandleBlockChunk", blockChunk, nil)
+			c.rpcClient.Call("P2PServer.HandleBlockChunk", blockChunk, nil)
 
 		case vote := <-c.votes:
-			c.rpcClient.Call("Server.HandleVote", vote, nil)
+			c.rpcClient.Call("P2PServer.HandleVote", vote, nil)
 
 		}
 	}

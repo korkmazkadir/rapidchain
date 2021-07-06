@@ -18,18 +18,19 @@ type NodeList struct {
 type Logs struct {
 	IPAddress  string
 	PortNumber int
-	Logs       []string
-}
-
-type Stats struct {
-	IPAddress  string
-	PortNumber int
-	Stats      []string
+	// zipped content
+	Logs []byte
 }
 
 type NodeRegistry struct {
 	mutex           sync.Mutex
 	registeredNodes []NodeInfo
+	config          NodeConfig
+}
+
+func NewNodeRegistry(config NodeConfig) *NodeRegistry {
+
+	return &NodeRegistry{config: config}
 }
 
 // Register registers a node with specific node info
@@ -69,7 +70,6 @@ func (nr *NodeRegistry) UploadLogs(logs *Logs, reply *int) error {
 	return nil
 }
 
-func (nr *NodeRegistry) UploadStats(stats *Stats, reply *int) error {
+func saveLogs() {
 
-	return nil
 }
