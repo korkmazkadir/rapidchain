@@ -1,4 +1,4 @@
-package registry
+package registery
 
 import (
 	"net/rpc"
@@ -16,9 +16,9 @@ func NewRegistryClient(registryAddress string, currentNodeInfo NodeInfo) Registr
 		panic(err)
 	}
 
-	registryClient := RegistryClient{rpcClient: rpcClient, nodeInfo: currentNodeInfo}
+	registeryClient := RegistryClient{rpcClient: rpcClient, nodeInfo: currentNodeInfo}
 
-	return registryClient
+	return registeryClient
 }
 
 // RegisterNode registers a node and returns assigned node ID

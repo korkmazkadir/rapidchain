@@ -2,15 +2,39 @@ package consensus
 
 import (
 	"bytes"
+	"crypto/ed25519"
+	"encoding/base64"
 	"log"
+	"sort"
 
 	"github.com/korkmazkadir/rapidchain/common"
 	"github.com/korkmazkadir/rapidchain/network"
 )
 
+// receiveBlock returns block, merkle root, error
 func receiveBlock(round int, demux *common.Demux, chunkCount int, peerSet *network.PeerSet) (common.Block, []byte, error) {
 
-	return common.Block{}, []byte{}, nil
+	chunkChan, err := demux.GetVoteBlockChunkChan(round)
+	if err != nil {
+		panic(err)
+	}
+
+	// check for differet merkle roots and return error
+	var receivedChunks []common.BlockChunk
+	for len(receivedChunks) < chunkCount {
+		c := <-chunkChan
+		receivedChunks = append(receivedChunks, c)
+		peerSet.ForwardChunk(c)
+	}
+
+	sort.Slice(receivedChunks, func(i, j int) bool {
+		return receivedChunks[i].ChunkIndex < receivedChunks[j].ChunkIndex
+	})
+
+	block := common.MergeChunks(receivedChunks)
+
+	// this way of returnin merkleroot is wrong
+	return block, receivedChunks[0].Authenticator.MerkleRoot, nil
 }
 
 func receiveProposeVote(round int, demux *common.Demux, peerSet *network.PeerSet) common.Vote {
@@ -51,13 +75,14 @@ func receiveEchoVotes(round int, demux *common.Demux, minVoteCount int, merkleRo
 		ev := <-echoChannel
 
 		if !bytes.Equal(ev.BlockHash, merkleRoot) || !validateVote(ev, merkleRoot) {
+			log.Printf("echo vore received for undefined merkleroot %x\n", encodeBase64(ev.BlockHash))
 			continue
 		}
 
 		echoVotes = append(echoVotes, ev)
 		peerSet.ForwardVote(ev)
 
-		if len(echoVotes) >= minVoteCount {
+		if len(echoVotes) == minVoteCount {
 			return echoVotes
 		}
 
@@ -114,7 +139,11 @@ func validateVote(vote common.Vote, merkleRoot []byte) bool {
 	return true
 }
 
-func signHash(hash []byte, keySecret []byte) []byte {
-	//panic("signVote not implemented")
-	return []byte{}
+func signHash(hash []byte, keyPrive ed25519.PrivateKey) []byte {
+
+	return ed25519.Sign(keyPrive, hash)
+}
+
+func encodeBase64(hex []byte) string {
+	return base64.StdEncoding.EncodeToString([]byte(hex))
 }

@@ -5,20 +5,22 @@ import (
 	"net"
 	"net/rpc"
 
-	"github.com/korkmazkadir/rapidchain/registry"
+	"github.com/korkmazkadir/rapidchain/registery"
 )
 
 func main() {
 
 	// Read this from a file
-	nodeConfig := registry.NodeConfig{
-		NodeCount:    10,
-		EpochSeed:    []byte{1, 2, 3, 4, 5},
-		EndRound:     10,
-		GossipFanout: 16,
+	nodeConfig := registery.NodeConfig{
+		NodeCount:       5,
+		EpochSeed:       []byte{1, 2, 3, 4, 5},
+		EndRound:        1000000,
+		GossipFanout:    4,
+		BlockSize:       2097152,
+		BlockChunkCount: 128,
 	}
 
-	nodeRegistry := registry.NewNodeRegistry(nodeConfig)
+	nodeRegistry := registery.NewNodeRegistry(nodeConfig)
 
 	err := rpc.Register(nodeRegistry)
 	if err != nil {
@@ -37,8 +39,8 @@ func main() {
 		conn, _ := l.Accept()
 		go func() {
 			rpc.ServeConn(conn)
-			address := conn.RemoteAddr().String()
-			nodeRegistry.Unregister(address)
+			//address := conn.RemoteAddr().String()
+			//nodeRegistry.Unregister(address)
 		}()
 	}
 }

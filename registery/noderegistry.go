@@ -1,4 +1,4 @@
-package registry
+package registery
 
 import (
 	"log"

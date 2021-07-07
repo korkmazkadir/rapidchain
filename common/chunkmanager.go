@@ -35,8 +35,8 @@ func createAuthenticators(chunks []BlockChunk) []byte {
 
 	// construct merkletree
 	var content []merkletree.Content
-	for _, c := range chunks {
-		content = append(content, c)
+	for i := range chunks {
+		content = append(content, chunks[i])
 	}
 
 	tree, err := merkletree.NewTree(content)
@@ -48,7 +48,7 @@ func createAuthenticators(chunks []BlockChunk) []byte {
 	merkleRoot := tree.MerkleRoot()
 
 	// creates merklepath for each chunk
-	for i := 0; i < len(chunks); i++ {
+	for i := range chunks {
 		path, index, err := tree.GetMerklePath(chunks[i])
 		if err != nil {
 			panic(err)
