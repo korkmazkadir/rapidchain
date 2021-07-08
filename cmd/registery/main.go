@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/rpc"
@@ -8,17 +10,11 @@ import (
 	"github.com/korkmazkadir/rapidchain/registery"
 )
 
+const configFile = "config.json"
+
 func main() {
 
-	// Read this from a file
-	nodeConfig := registery.NodeConfig{
-		NodeCount:       5,
-		EpochSeed:       []byte{1, 2, 3, 4, 5},
-		EndRound:        20,
-		GossipFanout:    4,
-		BlockSize:       2097152,
-		BlockChunkCount: 128,
-	}
+	nodeConfig := readConfigFromFile()
 
 	nodeRegistry := registery.NewNodeRegistry(nodeConfig)
 
@@ -39,8 +35,19 @@ func main() {
 		conn, _ := l.Accept()
 		go func() {
 			rpc.ServeConn(conn)
-			//address := conn.RemoteAddr().String()
-			//nodeRegistry.Unregister(address)
 		}()
 	}
+}
+
+func readConfigFromFile() registery.NodeConfig {
+
+	data, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		panic(err)
+	}
+
+	config := registery.NodeConfig{}
+	json.Unmarshal(data, &config)
+
+	return config
 }
