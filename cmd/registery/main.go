@@ -14,7 +14,7 @@ func main() {
 	nodeConfig := registery.NodeConfig{
 		NodeCount:       5,
 		EpochSeed:       []byte{1, 2, 3, 4, 5},
-		EndRound:        1000000,
+		EndRound:        20,
 		GossipFanout:    4,
 		BlockSize:       2097152,
 		BlockChunkCount: 128,

@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/korkmazkadir/rapidchain/common"
 )
 
 // NodeInfo keeps node info
@@ -18,17 +20,11 @@ type NodeList struct {
 	Nodes []NodeInfo
 }
 
-type Logs struct {
-	IPAddress  string
-	PortNumber int
-	// zipped content
-	Logs []byte
-}
-
 type NodeRegistry struct {
 	mutex           sync.Mutex
 	registeredNodes []NodeInfo
 	config          NodeConfig
+	statKeeper      *StatKeeper
 }
 
 func NewNodeRegistry(config NodeConfig) *NodeRegistry {
@@ -114,10 +110,18 @@ func (nr *NodeRegistry) GetNodeList(nodeInfo *NodeInfo, nodeList *NodeList) erro
 	return nil
 }
 
-func (nr *NodeRegistry) UploadLogs(logs *Logs, reply *int) error {
+func (nr *NodeRegistry) UploadStats(stats *common.StatList, reply *int) error {
 
-	// writing byte to a file vs writing string
-	// https://gobyexample.com/writing-files
+	nr.mutex.Lock()
+	defer nr.mutex.Unlock()
+
+	log.Printf("node %d (%s:%d) uploading stats; event count %d \n", stats.NodeID, stats.IPAddress, stats.PortNumber, len(stats.Events))
+
+	if nr.statKeeper == nil {
+		nr.statKeeper = NewStatKeeper(nr.config)
+	}
+
+	nr.statKeeper.SaveStats(*stats)
 
 	return nil
 }

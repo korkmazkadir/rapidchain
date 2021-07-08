@@ -70,6 +70,15 @@ func main() {
 
 	runConsensus(rapidchain, nodeConfig.EndRound, nodeInfo.ID, nodeConfig.NodeCount, nodeConfig.BlockSize)
 
+	// collects stats abd uploads to registry
+	log.Printf("uploading stats to the registry\n")
+	events := statLogger.GetEvents()
+	statList := common.StatList{IPAddress: nodeInfo.IPAddress, PortNumber: nodeInfo.PortNumber, NodeID: nodeInfo.ID, Events: events}
+	registry.UploadStats(statList)
+
+	log.Printf("reached target round count. Shutting down in 1 minute\n")
+	time.Sleep(1 * time.Minute)
+
 	log.Printf("exiting as expected...\n")
 }
 
@@ -157,8 +166,6 @@ func runConsensus(rc *consensus.RapidchainConsensus, numberOfRounds int, nodeID 
 		time.Sleep(2 * time.Second)
 	}
 
-	log.Printf("reached target round count. Shutting down in 1 minute\n")
-	time.Sleep(1 * time.Minute)
 }
 
 // utils

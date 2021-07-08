@@ -2,6 +2,8 @@ package registery
 
 import (
 	"net/rpc"
+
+	"github.com/korkmazkadir/rapidchain/common"
 )
 
 type RegistryClient struct {
@@ -52,4 +54,12 @@ func (rc RegistryClient) GetNodeList() []NodeInfo {
 	}
 
 	return nodeList.Nodes
+}
+
+func (rc RegistryClient) UploadStats(statList common.StatList) {
+
+	err := rc.rpcClient.Call("NodeRegistry.UploadStats", statList, nil)
+	if err != nil {
+		panic(err)
+	}
 }
