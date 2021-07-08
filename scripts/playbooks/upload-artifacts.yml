@@ -1,0 +1,15 @@
+---
+# The playbook uploads experiment artifacts to remote machines
+
+- hosts: all
+  tasks:
+    - name: remove artifacts from the server
+      file:
+        path: ~/rapidchain
+        state: absent
+
+    - name: copy artifacts to the remote server
+      copy:
+        src: ../artifacts/
+        dest: ~/rapidchain
+        mode: preserve

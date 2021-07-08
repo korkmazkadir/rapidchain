@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/base64"
+	"fmt"
 	"log"
 	"math/rand"
 	"net"
 	"net/rpc"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -18,6 +20,9 @@ import (
 
 func main() {
 
+	hostname := getEnvWithDefault("NODE_HOSTNAME", "127.0.0.1")
+	registryAddress := getEnvWithDefault("REGISTRY_ADDRESS", "localhost:1234")
+
 	demux := common.NewDemultiplexer(0)
 	server := network.NewServer(demux)
 
@@ -27,7 +32,7 @@ func main() {
 	}
 
 	rpc.HandleHTTP()
-	l, e := net.Listen("tcp", "127.0.0.1:")
+	l, e := net.Listen("tcp", fmt.Sprintf("%s:", hostname))
 	if e != nil {
 		log.Fatal("listen error:", e)
 	}
@@ -45,7 +50,7 @@ func main() {
 	log.Printf("p2p server started on %s\n", l.Addr().String())
 	nodeInfo := getNodeInfo(l.Addr().String())
 
-	registry := registery.NewRegistryClient("localhost:1234", nodeInfo)
+	registry := registery.NewRegistryClient(registryAddress, nodeInfo)
 
 	nodeInfo.ID = registry.RegisterNode()
 	log.Printf("node registeration successful, assigned ID is %d\n", nodeInfo.ID)
@@ -163,7 +168,7 @@ func runConsensus(rc *consensus.RapidchainConsensus, numberOfRounds int, nodeID 
 		//log.Printf("decided block hash %x\n", encodeBase64(block.Hash()[:15]))
 
 		currentRound++
-		time.Sleep(2 * time.Second)
+		//time.Sleep(2 * time.Second)
 	}
 
 }
@@ -193,4 +198,14 @@ func getRandomByteSlice(size int) []byte {
 		panic(err)
 	}
 	return data
+}
+
+func getEnvWithDefault(key string, defaultValue string) string {
+	val := os.Getenv(key)
+	if len(val) == 0 {
+		val = defaultValue
+	}
+
+	log.Printf("%s=%s\n", key, val)
+	return val
 }

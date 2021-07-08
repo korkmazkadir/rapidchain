@@ -1,0 +1,10 @@
+---
+# The playbook uploads experiment artifacts to remote machines
+
+- hosts: all
+  tasks:
+    - name: copy artifacts to the remote server
+      copy:
+        src: ../artifacts/config.json
+        dest: ~/rapidchain/config.json
+        mode: preserve

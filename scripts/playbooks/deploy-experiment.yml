@@ -1,0 +1,17 @@
+---
+# The playbook uploads experiment artifacts to remote machines
+
+- hosts: registry
+  tasks:
+    - name: killing registery
+      shell: 
+        cmd: pkill registery || /bin/true
+
+    - name: deploying registery service
+      shell: cd ~/rapidchain; nohup ./registery > registery.log 2>&1 &
+
+
+- hosts: all
+  tasks:
+    - name: deploying registery service
+      shell: cd ~/rapidchain; ./deploy-nodes.sh 25 gros-15.nancy.grid5000.fr:1234 eno1

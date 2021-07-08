@@ -1,0 +1,14 @@
+---
+# The playbook install dependencies
+
+- hosts: all
+  tasks:
+    - name: Install cgroup-tools (state=present is optional)
+      apt:
+        name: cgroup-tools
+        state: present
+
+    - name: Install iproute (state=present is optional)
+      apt:
+        name: iproute2
+        state: present

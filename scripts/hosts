@@ -1,0 +1,13 @@
+
+gros-15.nancy.grid5000.fr
+gros-17.nancy.grid5000.fr
+gros-18.nancy.grid5000.fr
+
+
+[all:vars]
+ansible_user=root
+ansible_python_interpreter=/usr/bin/python3
+
+
+[registry]
+gros-15.nancy.grid5000.fr

@@ -18,3 +18,12 @@
 !**/*.go
 !**/
 !**/*.json
+
+!**/*.yml
+!**/*.sh
+!hosts
+
+*.retry
+scripts/artifacts/*
+scripts/artifacts/config.json
+
