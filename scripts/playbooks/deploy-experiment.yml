@@ -7,6 +7,10 @@
       shell: 
         cmd: pkill registery || /bin/true
 
+    - name: killing nodes
+      shell: 
+        cmd: pkill node || /bin/true
+
     - name: deploying registery service
       shell: cd ~/rapidchain; nohup ./registery > registery.log 2>&1 &
 

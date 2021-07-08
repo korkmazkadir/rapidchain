@@ -19,7 +19,8 @@ func NewStatKeeper(config NodeConfig) *StatKeeper {
 
 	// creates folder to save stats
 	folderName := time.Now().Format("2006-01-02T15:04:05")
-	err := os.Mkdir(folderName, 0755)
+	folderName = fmt.Sprintf("stats/%s", folderName)
+	err := os.MkdirAll(folderName, 0755)
 	if err != nil {
 		panic(err)
 	}
