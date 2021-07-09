@@ -2,13 +2,13 @@
 
 # builds registry service
 cd ../cmd/registery/
-go build .
+env GOOS=linux GOARCH=amd64 go build .
 
 cd -
 
 # builds node
 cd ../cmd/node/
-go build .
+env GOOS=linux GOARCH=amd64 go build .
 
 cd -
 
