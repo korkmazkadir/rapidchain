@@ -7,15 +7,15 @@
       shell: 
         cmd: pkill registery || /bin/true
 
-    - name: killing nodes
-      shell: 
-        cmd: pkill node || /bin/true
-
     - name: deploying registery service
       shell: cd ~/rapidchain; nohup ./registery > registery.log 2>&1 &
 
 
 - hosts: all
   tasks:
-    - name: deploying registery service
-      shell: cd ~/rapidchain; ./deploy-nodes.sh 25 gros-15.nancy.grid5000.fr:1234 eno1
+    - name: killing nodes
+      shell: 
+        cmd: pkill node || /bin/true
+
+    - name: deploying nodes
+      shell: cd ~/rapidchain; ./deploy-nodes.sh 25 gros-3.nancy.grid5000.fr:1234 eno1
