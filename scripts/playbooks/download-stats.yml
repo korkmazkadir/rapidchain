@@ -1,0 +1,15 @@
+---
+# The playbook download logs from registery machine
+
+- hosts: registry
+  tasks:
+    - name: Zips stats forlder on registery machine
+      community.general.archive:
+        path: ~/rapidchain/stats
+        dest: ~/stats.zip
+        format: zip
+
+    - name: Donwloads stats.zip to the Desktop
+      fetch:
+        src: ~/stats.zip
+        dest: ~/Desktop
