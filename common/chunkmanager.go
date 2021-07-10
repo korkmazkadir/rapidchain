@@ -19,6 +19,15 @@ func ChunkBlock(block Block, numberOfChunks int) ([]BlockChunk, []byte) {
 	return chunks, merkleRootHash
 }
 
+func ChunkBlockWithErasureCoding(block Block, numberOfChunks int) ([]BlockChunk, []byte) {
+
+	blockBytes := encodeToBytes(block)
+	chunks := constructChunks(block, blockBytes, numberOfChunks)
+	merkleRootHash := createAuthenticators(chunks)
+
+	return chunks, merkleRootHash
+}
+
 // mergeChunks assumes that sanity checks are done before calling this function
 func MergeChunks(chunks []BlockChunk) Block {
 
@@ -76,18 +85,25 @@ func constructChunks(block Block, blockBytes []byte, numberOfChunks int) []Block
 		endIndex := startIndex + chunkSize
 
 		var payload []byte
+		payloadLength := 0
 		if i < (numberOfChunks - 1) {
 			payload = blockBytes[startIndex:endIndex]
+			payloadLength = len(payload)
 		} else {
 			payload = blockBytes[startIndex:]
+			payloadLength = len(payload)
+			// adds extra data to make all chunks same size
+			extraDataLength := chunkSize - payloadLength
+			payload = append(payload, make([]byte, extraDataLength)...)
 		}
 
 		chunk := BlockChunk{
-			Issuer:     block.Issuer,
-			Round:      block.Round,
-			ChunkCount: numberOfChunks,
-			ChunkIndex: i,
-			Payload:    payload,
+			Issuer:        block.Issuer,
+			Round:         block.Round,
+			ChunkCount:    numberOfChunks,
+			ChunkIndex:    i,
+			Payload:       payload,
+			PayloadLength: payloadLength,
 		}
 
 		chunks = append(chunks, chunk)

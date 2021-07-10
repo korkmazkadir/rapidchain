@@ -116,6 +116,17 @@ type BlockChunk struct {
 	// Chunk index
 	ChunkIndex int
 
+	// ErorrCorrectionScheme ex: 32/4 means that for each 32 chunks, 4 chunks are added
+	// for error correction by erasure coding library
+	ErorrCorrectionScheme [2]int
+
+	// Length of payload
+	// If the payload contains more data than length we should discart.
+	// Extra data added by the erasure coding library because each chunk needs to be in
+	// the same size. If the paylaod length is zero means that chunk is added purly for error correction
+	// chunks with payload length 0 should be discartet during the merge phase.
+	PayloadLength int
+
 	// Chunk authenticator to validate chunk
 	Authenticator ChunkAuthenticator
 
