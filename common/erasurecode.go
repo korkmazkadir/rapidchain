@@ -29,11 +29,12 @@ func ErasureCode(round int, issuer []byte, chunks []BlockChunk, dataShardCount i
 // AreThereEnoughChunksToReconstructBlock assumes that all chunks belongs to same block
 func AreThereEnoughChunksToReconstructBlock(chunks []BlockChunk, dataShardCount int, parityShardCount int) bool {
 
-	for i := 0; i < len(chunks); i += dataShardCount {
+	shardSize := dataShardCount + parityShardCount
+	for i := 0; i < len(chunks); i += shardSize {
 
 		count := 0
-		for j := i; j < i+dataShardCount; j++ {
-			if chunks[i].Payload != nil {
+		for j := i; j < (i + shardSize); j++ {
+			if chunks[j].Payload != nil {
 				count++
 			}
 		}

@@ -37,6 +37,40 @@ func receiveBlock(round int, demux *common.Demux, chunkCount int, peerSet *netwo
 	return block, receivedChunks[0].Authenticator.MerkleRoot, nil
 }
 
+func receiveErasureCodedBlock(round int, demux *common.Demux, chunkCount int, peerSet *network.PeerSet, dataChunkCount int, parityChunkCount int) (common.Block, []byte, error) {
+
+	chunkChan, err := demux.GetVoteBlockChunkChan(round)
+	if err != nil {
+		panic(err)
+	}
+
+	// check for differet merkle roots and return error
+	ck := chunkCount + ((chunkCount / dataChunkCount) * parityChunkCount)
+	receivedChunks := make([]common.BlockChunk, ck)
+	var merkleRoot []byte
+	for common.AreThereEnoughChunksToReconstructBlock(receivedChunks, dataChunkCount, parityChunkCount) == false {
+		c := <-chunkChan
+		receivedChunks[c.ChunkIndex] = c
+		peerSet.ForwardChunk(c)
+
+		//
+		// FIX this!!!
+		// This is not good way to get merkle root
+		// Consider waiting for a specific block by getting merkle root!!!
+		if len(merkleRoot) == 0 {
+			merkleRoot = append(merkleRoot, c.Authenticator.MerkleRoot...)
+		}
+
+	}
+
+	block := common.MergeErasureCodedChunks(receivedChunks, dataChunkCount, parityChunkCount)
+
+	log.Printf("Received block hash is %x\n", block.Hash()[:16])
+
+	// this way of returnin merkleroot is wrong
+	return block, merkleRoot, nil
+}
+
 func receiveProposeVote(round int, demux *common.Demux, peerSet *network.PeerSet) common.Vote {
 
 	proposeChannel, err := demux.GetVoteChan(round, common.ProposeTag)

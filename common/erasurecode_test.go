@@ -1,6 +1,7 @@
 package common
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"testing"
 	"time"
@@ -46,10 +47,16 @@ func TestErasurecode(t *testing.T) {
 
 	h := sha256.New()
 	h.Write(chunks[0].Payload)
-	t.Logf("Chunks[0] payload %x", h.Sum(nil))
+	hash1 := h.Sum(nil)
+	t.Logf("Chunks[0] payload %x", hash1)
 
 	h.Reset()
 	h.Write(constructedChunks[0].Payload)
-	t.Logf("constructedChunks[0] payload %x", h.Sum(nil))
+	hash2 := h.Sum(nil)
+	t.Logf("constructedChunks[0] payload %x", hash2)
+
+	if !bytes.Equal(hash1, hash2) {
+		t.Errorf("cound not reconbstruct the original chunk expected [%x] reconstrcuted [%x] ", hash1, hash2)
+	}
 
 }

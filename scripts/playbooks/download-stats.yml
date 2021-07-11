@@ -9,7 +9,7 @@
         dest: ~/stats.zip
         format: zip
 
-    - name: Donwloads stats.zip to the Desktop
+    - name: Downloads stats.zip to the Desktop
       fetch:
         src: ~/stats.zip
         dest: ~/Desktop

@@ -5,7 +5,9 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
+	"log"
 	"math"
+	"time"
 
 	"github.com/cbergoon/merkletree"
 )
@@ -19,10 +21,12 @@ func ChunkBlock(block Block, numberOfChunks int) ([]BlockChunk, []byte) {
 	return chunks, merkleRootHash
 }
 
-func ChunkBlockWithErasureCoding(block Block, numberOfChunks int) ([]BlockChunk, []byte) {
+func ChunkBlockWithErasureCoding(block Block, numberOfChunks int, dataChunkCount int, parityChunkCount int) ([]BlockChunk, []byte) {
 
 	blockBytes := encodeToBytes(block)
 	chunks := constructChunks(block, blockBytes, numberOfChunks)
+	// adds parity chunks
+	chunks = ErasureCode(block.Round, block.Issuer, chunks, dataChunkCount, parityChunkCount)
 	merkleRootHash := createAuthenticators(chunks)
 
 	return chunks, merkleRootHash
@@ -37,6 +41,26 @@ func MergeChunks(chunks []BlockChunk) Block {
 	}
 
 	return decodeToBlock(blockData)
+}
+
+func MergeErasureCodedChunks(chunks []BlockChunk, dataChunkCount int, parityChunkCount int) Block {
+
+	// counts missing chunks for the information purpose
+	missingCount := 0
+	for i := range chunks {
+		if chunks[i].Payload == nil {
+			missingCount++
+		}
+	}
+
+	log.Printf("missing chunk count is %d\n", missingCount)
+
+	start := time.Now()
+	chunks = ReconstructMissingChunks(chunks, dataChunkCount, parityChunkCount)
+	elapsedTime := time.Since(start).Milliseconds()
+
+	log.Printf("missing chunk count is %d Elapsed time to reconstruct %d ms \n", missingCount, elapsedTime)
+	return MergeChunks(chunks)
 }
 
 // createAuthenticators returns mekle root

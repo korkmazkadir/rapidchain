@@ -56,14 +56,21 @@ func (c *RapidchainConsensus) Propose(round int, block common.Block, previousBlo
 	c.demultiplexer.UpdateRound(round)
 
 	// chunks the block
-	chunks, merkleRoot := common.ChunkBlock(block, c.nodeConfig.BlockChunkCount)
-	//log.Printf("proposing block %x\n", encodeBase64(merkleRoot[:15]))
+	var chunks []common.BlockChunk
+	var merkleRoot []byte
+	if c.nodeConfig.DataChunkCount > 0 && c.nodeConfig.PairtyChunkCount > 0 {
+		chunks, merkleRoot = common.ChunkBlockWithErasureCoding(block, c.nodeConfig.BlockChunkCount, c.nodeConfig.DataChunkCount, c.nodeConfig.PairtyChunkCount)
+	} else {
+		chunks, merkleRoot = common.ChunkBlock(block, c.nodeConfig.BlockChunkCount)
+	}
 
-	// disseminate chunks over different nodes
-	c.peerSet.DissaminateChunks(chunks)
+	//log.Printf("proposing block %x\n", encodeBase64(merkleRoot[:15]))
 
 	// vote propose
 	c.vote(common.ProposeTag, round, merkleRoot, nil)
+
+	// disseminate chunks over different nodes
+	c.peerSet.DissaminateChunks(chunks)
 
 	// I am returning accept votes but I do not know how to use them!!!!
 	c.commonPath(round, merkleRoot)
@@ -89,10 +96,22 @@ func (c *RapidchainConsensus) Decide(round int, previousBlockHash []byte) (commo
 	// BLOCK RECEIVE EVENT
 	//log.Printf("waiting for block...\n")
 	startTime = time.Now()
-	block, merkleRoot, err := receiveBlock(round, c.demultiplexer, c.nodeConfig.BlockChunkCount, &c.peerSet)
+
+	var block common.Block
+	var merkleRoot []byte
+	var err error
+	if c.nodeConfig.DataChunkCount > 0 && c.nodeConfig.PairtyChunkCount > 0 {
+		// this line is too long. Handle it!
+		block, merkleRoot, err = receiveErasureCodedBlock(round, c.demultiplexer, c.nodeConfig.BlockChunkCount, &c.peerSet,
+			c.nodeConfig.DataChunkCount, c.nodeConfig.PairtyChunkCount)
+	} else {
+		block, merkleRoot, err = receiveBlock(round, c.demultiplexer, c.nodeConfig.BlockChunkCount, &c.peerSet)
+	}
+
 	if err != nil {
 		return common.Block{}, err
 	}
+
 	c.statLogger.LogBlockReceive(time.Since(startTime).Milliseconds())
 
 	valid := validateBlock(block, previousBlockHash)
