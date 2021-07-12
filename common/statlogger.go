@@ -75,7 +75,7 @@ func (s *StatLogger) LogBlockReceive(elapsedTime int64) {
 
 func (s *StatLogger) LogEcho(elapsedTime int64) {
 	log.Printf("stats\t%d\t%d\t%s\t%d\t", s.nodeID, s.round, "ECHO", elapsedTime)
-	s.events = append(s.events, Event{Round: s.round, Type: Proposed, ElapsedTime: int(elapsedTime)})
+	s.events = append(s.events, Event{Round: s.round, Type: Echo, ElapsedTime: int(elapsedTime)})
 }
 
 func (s *StatLogger) LogAccept(elapsedTime int64) {
