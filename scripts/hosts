@@ -1,19 +1,19 @@
-
-gros-17.nancy.grid5000.fr
-gros-21.nancy.grid5000.fr
-gros-27.nancy.grid5000.fr
-gros-28.nancy.grid5000.fr
+gros-3.nancy.grid5000.fr
 gros-30.nancy.grid5000.fr
-gros-32.nancy.grid5000.fr
-gros-34.nancy.grid5000.fr
-gros-74.nancy.grid5000.fr
-gros-92.nancy.grid5000.fr
-gros-95.nancy.grid5000.fr
+gros-45.nancy.grid5000.fr
+gros-50.nancy.grid5000.fr
+gros-65.nancy.grid5000.fr
+gros-68.nancy.grid5000.fr
+gros-86.nancy.grid5000.fr
+gros-87.nancy.grid5000.fr
+gros-98.nancy.grid5000.fr
+gros-99.nancy.grid5000.fr
+
 
 [all:vars]
 ansible_user=root
 ansible_python_interpreter=/usr/bin/python3
-
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 
 [registry]
-gros-17.nancy.grid5000.fr
+gros-3.nancy.grid5000.fr
