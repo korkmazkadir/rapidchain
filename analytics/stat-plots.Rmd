@@ -1,0 +1,68 @@
+---
+title: "Rapidchain Statistics"
+author: "Kadir Korkmaz"
+date: "July 12, 2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(jsonlite)
+library(dplyr)
+library(knitr)
+
+
+
+experimentConfigDF <- fromJSON('/home/kadir/Desktop/rapidchain-stats/collected/experiment-7/config.json') %>% as.data.frame
+experimentDF <- read.table('/home/kadir/Desktop/rapidchain-stats/collected/experiment-7/stats.log', sep = '\t',header = FALSE)
+
+
+colnames(experimentDF) <- c("NodeID","Round","Type","ElapsedTime")
+
+
+
+```
+
+# Configuration
+
+```{r, echo=FALSE }
+library(tidyr)
+
+configParameters <- experimentConfigDF %>% gather(key = "Parameter", value = "Value")
+
+kable(configParameters, caption = "experiment configuration")
+
+```
+
+
+\newpage
+
+```{r, echo=FALSE, fig.height=2, warning=FALSE}
+library(tidyr)
+library(ggplot2)
+
+proposedDF <- experimentDF %>% filter(Type == "PROPOSED") %>% select(ElapsedTime)
+blockReceivedDF <- experimentDF %>% filter(Type == "BLOCK_RECEIVED") %>% select(ElapsedTime)
+echoDF <-experimentDF %>% filter(Type == "ECHO") %>% select(ElapsedTime)
+acceptDF <-experimentDF %>% filter(Type == "ACCEPT") %>% select(ElapsedTime)
+endOfRound <-experimentDF %>% filter(Type == "END_OF_ROUND") %>% select(ElapsedTime)
+
+ggplot(proposedDF, aes(x=proposedDF$ElapsedTime))+
+  geom_histogram(color="darkblue", fill="lightblue", bins = 30)
+
+ggplot(blockReceivedDF, aes(x=blockReceivedDF$ElapsedTime))+
+  geom_histogram(color="darkblue", fill="lightblue", bins = 30)
+
+ggplot(echoDF, aes(x=echoDF$ElapsedTime))+
+  geom_histogram(color="darkblue", fill="lightblue", bins = 30)
+
+ggplot(acceptDF, aes(x=acceptDF$ElapsedTime))+
+  geom_histogram(color="darkblue", fill="lightblue", bins = 30)
+
+ggplot(endOfRound, aes(x=endOfRound$ElapsedTime))+
+  geom_histogram(color="darkblue", fill="lightblue", bins = 30)
+
+
+
+```

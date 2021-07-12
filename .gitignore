@@ -22,6 +22,7 @@
 !**/*.yml
 !**/*.sh
 !hosts
+!*.Rmd
 
 *.retry
 scripts/artifacts/*
