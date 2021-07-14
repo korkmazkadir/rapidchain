@@ -3,25 +3,32 @@ title: "Rapidchain Statistics"
 author: "Kadir Korkmaz"
 date: "July 12, 2021"
 output: pdf_document
+knit: (function(inputFile, encoding) { 
+      workingDir <- '/Users/kadir/Downloads/collected/experiment-7';
+      rmarkdown::render(inputFile,
+                        encoding=encoding,
+                        knit_root_dir = workingDir,
+                        output_file=file.path(workingDir, 'report.pdf')) })
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
 
+```{r data, include=FALSE}
 library(jsonlite)
-library(dplyr)
 library(knitr)
+library(dplyr)
 
-
-
-experimentConfigDF <- fromJSON('/home/kadir/Desktop/rapidchain-stats/collected/experiment-7/config.json') %>% as.data.frame
-experimentDF <- read.table('/home/kadir/Desktop/rapidchain-stats/collected/experiment-7/stats.log', sep = '\t',header = FALSE)
-
+experimentConfigDF <- fromJSON('config.json') %>% as.data.frame
+experimentDF <- read.table('stats.log', sep = '\t',header = FALSE)
 
 colnames(experimentDF) <- c("NodeID","Round","Type","ElapsedTime")
 
-
-
+calculateSummaryStats <- function(df, collumn) {
+  summ <- df %>% summarise(min = min(collumn), mean= mean(collumn), sd= sd(collumn), max = max(collumn))
+  return(summ)
+}
 ```
 
 # Configuration
@@ -31,6 +38,7 @@ library(tidyr)
 
 configParameters <- experimentConfigDF %>% gather(key = "Parameter", value = "Value")
 
+getwd()
 kable(configParameters, caption = "experiment configuration")
 
 ```
@@ -48,21 +56,41 @@ echoDF <-experimentDF %>% filter(Type == "ECHO") %>% select(ElapsedTime)
 acceptDF <-experimentDF %>% filter(Type == "ACCEPT") %>% select(ElapsedTime)
 endOfRound <-experimentDF %>% filter(Type == "END_OF_ROUND") %>% select(ElapsedTime)
 
-ggplot(proposedDF, aes(x=proposedDF$ElapsedTime))+
-  geom_histogram(color="darkblue", fill="lightblue", bins = 30)
+ggplot(proposedDF, aes(x=ElapsedTime))+
+  geom_histogram(color="darkblue", fill="lightblue", bins = 30) +
+  ggtitle("Propose Time")
 
-ggplot(blockReceivedDF, aes(x=blockReceivedDF$ElapsedTime))+
-  geom_histogram(color="darkblue", fill="lightblue", bins = 30)
+proposedDFSum <- calculateSummaryStats(proposedDF, blockReceivedDF$ElapsedTime)
+kable(proposedDFSum)
 
-ggplot(echoDF, aes(x=echoDF$ElapsedTime))+
-  geom_histogram(color="darkblue", fill="lightblue", bins = 30)
+ggplot(blockReceivedDF, aes(x=ElapsedTime))+
+  geom_histogram(color="darkblue", fill="lightblue", bins = 30) +
+  ggtitle("Block Receive Time")
 
-ggplot(acceptDF, aes(x=acceptDF$ElapsedTime))+
-  geom_histogram(color="darkblue", fill="lightblue", bins = 30)
+blockReceivedDFSum <- calculateSummaryStats(blockReceivedDF, blockReceivedDF$ElapsedTime)
+kable(blockReceivedDFSum)
 
-ggplot(endOfRound, aes(x=endOfRound$ElapsedTime))+
-  geom_histogram(color="darkblue", fill="lightblue", bins = 30)
+ggplot(echoDF, aes(x=ElapsedTime))+
+  geom_histogram(color="darkblue", fill="lightblue", bins = 30) +
+  ggtitle("Echo Time")
 
+echoDFSum <- calculateSummaryStats(echoDF, echoDF$ElapsedTime)
+kable(echoDFSum)
+
+
+ggplot(acceptDF, aes(x=ElapsedTime))+
+  geom_histogram(color="darkblue", fill="lightblue", bins = 30) +
+  ggtitle("Accept Time")
+
+acceptDFSum <- calculateSummaryStats(acceptDF, acceptDF$ElapsedTime)
+kable(acceptDFSum)
+
+ggplot(endOfRound, aes(x=ElapsedTime))+
+  geom_histogram(color="darkblue", fill="lightblue", bins = 30) +
+  ggtitle("End of Round Time")
+
+endOfRoundSum <- calculateSummaryStats(endOfRound, endOfRound$ElapsedTime)
+kable(endOfRoundSum)
 
 
 ```
