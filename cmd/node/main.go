@@ -73,7 +73,7 @@ func main() {
 	statLogger := common.NewStatLogger(nodeInfo.ID)
 	rapidchain := consensus.NewRapidchain(demux, nodeConfig, peerSet, statLogger)
 
-	runConsensus(rapidchain, nodeConfig.EndRound, nodeInfo.ID, nodeConfig.NodeCount, nodeConfig.BlockSize)
+	runConsensus(rapidchain, nodeConfig.EndRound, nodeInfo.ID, nodeConfig.NodeCount, nodeConfig.LeaderCount, nodeConfig.BlockSize, nodeList)
 
 	// collects stats abd uploads to registry
 	log.Printf("uploading stats to the registry\n")
@@ -89,19 +89,22 @@ func main() {
 
 func createPeerSet(nodeList []registery.NodeInfo, fanOut int, nodeID int) network.PeerSet {
 
+	var copyNodeList []registery.NodeInfo
+	copyNodeList = append(copyNodeList, nodeList...)
+
 	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(nodeList), func(i, j int) { nodeList[i], nodeList[j] = nodeList[j], nodeList[i] })
+	rand.Shuffle(len(copyNodeList), func(i, j int) { copyNodeList[i], copyNodeList[j] = copyNodeList[j], copyNodeList[i] })
 
 	peerSet := network.PeerSet{}
 
 	peerCount := 0
-	for i := 0; i < len(nodeList); i++ {
+	for i := 0; i < len(copyNodeList); i++ {
 
 		if peerCount == fanOut {
 			break
 		}
 
-		peer := nodeList[i]
+		peer := copyNodeList[i]
 		if peer.ID == nodeID {
 			continue
 		}
@@ -129,10 +132,10 @@ func getNodeInfo(netAddress string) registery.NodeInfo {
 	return registery.NodeInfo{IPAddress: ipAddress, PortNumber: portNumber}
 }
 
-func runConsensus(rc *consensus.RapidchainConsensus, numberOfRounds int, nodeID int, nodeCount int, blockSize int) {
+func runConsensus(rc *consensus.RapidchainConsensus, numberOfRounds int, nodeID int, nodeCount int, leaderCount int, blockSize int, nodeList []registery.NodeInfo) {
 
 	time.Sleep(5 * time.Second)
-	log.Println("Consensus staryed")
+	log.Println("Consensus started")
 
 	// genesis block
 	previousBlock := common.Block{Issuer: []byte("initial block"), Round: 0, Payload: []byte("hello world")}
@@ -145,10 +148,8 @@ func runConsensus(rc *consensus.RapidchainConsensus, numberOfRounds int, nodeID 
 		var block common.Block
 		var err error
 
-		proposerID := ((currentRound % nodeCount) + 1)
-
-		if nodeID == proposerID {
-
+		if isElectedAsLeader(nodeList, currentRound, nodeID, leaderCount) {
+			log.Println("elected as leader")
 			b := createBlock(currentRound, nodeID, previousBlock.Hash(), blockSize)
 
 			block, err = rc.Propose(currentRound, b, previousBlock.Hash())
@@ -208,4 +209,23 @@ func getEnvWithDefault(key string, defaultValue string) string {
 
 	log.Printf("%s=%s\n", key, val)
 	return val
+}
+
+func isElectedAsLeader(nodeList []registery.NodeInfo, round int, nodeID int, leaderCount int) bool {
+
+	// assumes that node list is same for all nodes
+	// shuffle the node list using round number as the source of randomness
+	rand.Seed(int64(round))
+	rand.Shuffle(len(nodeList), func(i, j int) { nodeList[i], nodeList[j] = nodeList[j], nodeList[i] })
+
+	log.Printf("id of the elected leader is %d\n", nodeList[0].ID)
+
+	for i := 0; i < leaderCount; i++ {
+		if nodeList[i].ID == nodeID {
+			log.Println("elected as leader")
+			return true
+		}
+	}
+
+	return false
 }

@@ -18,4 +18,4 @@
         cmd: pkill node || /bin/true
 
     - name: deploying nodes
-      shell: cd ~/rapidchain; ./deploy-nodes.sh 25 gros-3.nancy.grid5000.fr:1234 eno1
+      shell: cd ~/rapidchain; ./deploy-nodes.sh 25 "{{ groups['registry'][0] }}:1234" eno1
