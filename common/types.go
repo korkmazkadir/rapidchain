@@ -81,7 +81,7 @@ type Vote struct {
 
 	Round int
 
-	BlockHash []byte
+	BlockHash [][]byte
 
 	Proof AcceptProof
 

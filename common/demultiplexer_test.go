@@ -64,7 +64,7 @@ func TestDemultiplexer(t *testing.T) {
 			Issuer:    getRandomByteSlice(32),
 			Tag:       ProposeTag,
 			Round:     currentRound,
-			BlockHash: getRandomByteSlice(32),
+			BlockHash: [][]byte{getRandomByteSlice(32)},
 		}
 
 		demux.EnqueVote(v)
@@ -86,7 +86,7 @@ func TestDemultiplexer(t *testing.T) {
 			Issuer:    getRandomByteSlice(32),
 			Tag:       EchoTag,
 			Round:     currentRound,
-			BlockHash: getRandomByteSlice(32),
+			BlockHash: [][]byte{getRandomByteSlice(32)},
 		}
 
 		demux.EnqueVote(v)
@@ -117,7 +117,7 @@ func TestDemultiplexer(t *testing.T) {
 			Issuer:    getRandomByteSlice(32),
 			Tag:       AcceptTag,
 			Round:     currentRound,
-			BlockHash: getRandomByteSlice(32),
+			BlockHash: [][]byte{getRandomByteSlice(32)},
 		}
 
 		// only sigle value will be enqueued

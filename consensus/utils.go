@@ -37,6 +37,23 @@ func receiveBlock(round int, demux *common.Demux, chunkCount int, peerSet *netwo
 	return block, receivedChunks[0].Authenticator.MerkleRoot, nil
 }
 
+func receiveMultipleBlocks(round int, demux *common.Demux, chunkCount int, peerSet *network.PeerSet, leaderCount int) ([]common.Block, [][]byte) {
+
+	chunkChan, err := demux.GetVoteBlockChunkChan(round)
+	if err != nil {
+		panic(err)
+	}
+
+	receiver := newBlockReceiver(leaderCount, chunkCount)
+	for !receiver.ReceivedAll() {
+		c := <-chunkChan
+		receiver.AddChunk(c)
+		peerSet.ForwardChunk(c)
+	}
+
+	return receiver.GetBlocks()
+}
+
 func receiveProposeVote(round int, demux *common.Demux, peerSet *network.PeerSet) common.Vote {
 
 	proposeChannel, err := demux.GetVoteChan(round, common.ProposeTag)
@@ -59,9 +76,43 @@ func receiveProposeVote(round int, demux *common.Demux, peerSet *network.PeerSet
 
 }
 
+func receiveMultipleProposeVotes(round int, demux *common.Demux, peerSet *network.PeerSet, leaderCount int) []common.Vote {
+
+	proposeChannel, err := demux.GetVoteChan(round, common.ProposeTag)
+	if err != nil {
+		panic(err)
+	}
+
+	var proposeVotes []common.Vote
+	for {
+
+		vote := <-proposeChannel
+		if !validateVote(vote, nil) {
+			log.Printf("invalid propose vote recevied: %+v\n", vote)
+			continue
+		}
+
+		peerSet.ForwardVote(vote)
+
+		proposeVotes = append(proposeVotes, vote)
+		if len(proposeVotes) == leaderCount {
+			return sortProposeVotes(proposeVotes)
+		}
+
+	}
+
+}
+
+func sortProposeVotes(votes []common.Vote) []common.Vote {
+	sort.Slice(votes, func(i, j int) bool {
+		return bytes.Compare(votes[i].BlockHash[0], votes[j].BlockHash[0]) == -1
+	})
+	return votes
+}
+
 // I can count number of votes, and I can return error after receiving (f/2)+1 votes
 
-func receiveEchoVotes(round int, demux *common.Demux, minVoteCount int, merkleRoot []byte, peerSet *network.PeerSet) []common.Vote {
+func receiveEchoVotes(round int, demux *common.Demux, minVoteCount int, merkleRoots [][]byte, peerSet *network.PeerSet) []common.Vote {
 
 	echoChannel, err := demux.GetVoteChan(round, common.EchoTag)
 	if err != nil {
@@ -74,8 +125,8 @@ func receiveEchoVotes(round int, demux *common.Demux, minVoteCount int, merkleRo
 
 		ev := <-echoChannel
 
-		if !bytes.Equal(ev.BlockHash, merkleRoot) || !validateVote(ev, merkleRoot) {
-			log.Printf("echo vore received for undefined merkleroot %x\n", encodeBase64(ev.BlockHash))
+		if !AreTheyEqual(merkleRoots, ev.BlockHash) || !validateVote(ev, merkleRoots) {
+			log.Printf("echo vore received for undefined merkleroot \n")
 			continue
 		}
 
@@ -90,7 +141,21 @@ func receiveEchoVotes(round int, demux *common.Demux, minVoteCount int, merkleRo
 
 }
 
-func receiveAcceptVotes(round int, demux *common.Demux, minVoteCount int, merkleRoot []byte, peerSet *network.PeerSet) []common.Vote {
+func AreTheyEqual(merkleRoots1 [][]byte, merkleRoots2 [][]byte) bool {
+	if len(merkleRoots1) != len(merkleRoots2) {
+		return false
+	}
+
+	for i := range merkleRoots1 {
+		if !bytes.Equal(merkleRoots1[i], merkleRoots2[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func receiveAcceptVotes(round int, demux *common.Demux, minVoteCount int, merkleRoots [][]byte, peerSet *network.PeerSet) []common.Vote {
 
 	acceptChannel, err := demux.GetVoteChan(round, common.AcceptTag)
 	if err != nil {
@@ -103,13 +168,13 @@ func receiveAcceptVotes(round int, demux *common.Demux, minVoteCount int, merkle
 
 		av := <-acceptChannel
 
-		if !bytes.Equal(av.BlockHash, merkleRoot) || len(av.Proof.EchoVotes) < minVoteCount {
+		if !AreTheyEqual(merkleRoots, av.BlockHash) || len(av.Proof.EchoVotes) < minVoteCount {
 			continue
 		}
 
-		isEchoVotesValid := validateVote(av, merkleRoot)
+		isEchoVotesValid := validateVote(av, merkleRoots)
 		for i := range av.Proof.EchoVotes {
-			isEchoVotesValid = isEchoVotesValid && validateVote(av.Proof.EchoVotes[i], merkleRoot)
+			isEchoVotesValid = isEchoVotesValid && validateVote(av.Proof.EchoVotes[i], merkleRoots)
 			if !isEchoVotesValid {
 				break
 			}
@@ -134,7 +199,7 @@ func validateBlock(block common.Block, previousBlockHash []byte) bool {
 	return true
 }
 
-func validateVote(vote common.Vote, merkleRoot []byte) bool {
+func validateVote(vote common.Vote, merkleRoots [][]byte) bool {
 
 	return true
 }

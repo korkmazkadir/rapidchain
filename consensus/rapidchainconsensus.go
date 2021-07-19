@@ -47,7 +47,7 @@ func NewRapidchain(demux *common.Demux, config registery.NodeConfig, peerSet net
 	return rapidchain
 }
 
-func (c *RapidchainConsensus) Propose(round int, block common.Block, previousBlockHash []byte) (common.Block, error) {
+func (c *RapidchainConsensus) Propose(round int, block common.Block, previousBlockHash []byte) []common.Block {
 
 	// starts a new epoch
 	c.statLogger.NewRound(round)
@@ -63,15 +63,12 @@ func (c *RapidchainConsensus) Propose(round int, block common.Block, previousBlo
 	c.peerSet.DissaminateChunks(chunks)
 
 	// vote propose
-	c.vote(common.ProposeTag, round, merkleRoot, nil)
+	c.vote(common.ProposeTag, round, [][]byte{merkleRoot}, nil)
 
-	// I am returning accept votes but I do not know how to use them!!!!
-	c.commonPath(round, merkleRoot)
-
-	return block, nil
+	return c.commonPath(round, merkleRoot)
 }
 
-func (c *RapidchainConsensus) Decide(round int, previousBlockHash []byte) (common.Block, error) {
+func (c *RapidchainConsensus) Decide(round int, previousBlockHash []byte) []common.Block {
 
 	// starts a new epoch
 	c.statLogger.NewRound(round)
@@ -79,71 +76,66 @@ func (c *RapidchainConsensus) Decide(round int, previousBlockHash []byte) (commo
 	// sets the round for demultiplexer
 	c.demultiplexer.UpdateRound(round)
 
-	//log.Printf("waiting for propose...\n")
+	return c.commonPath(round, previousBlockHash)
+}
+
+func (c *RapidchainConsensus) commonPath(round int, previousBlockHash []byte) []common.Block {
 
 	// PROPOSE EVENT
 	startTime := time.Now()
-	proposeVote := receiveProposeVote(round, c.demultiplexer, &c.peerSet)
+	proposeVotes := receiveMultipleProposeVotes(round, c.demultiplexer, &c.peerSet, c.nodeConfig.LeaderCount)
 	c.statLogger.LogPropose(time.Since(startTime).Milliseconds())
 
 	// BLOCK RECEIVE EVENT
 	//log.Printf("waiting for block...\n")
 	startTime = time.Now()
-	block, merkleRoot, err := receiveBlock(round, c.demultiplexer, c.nodeConfig.BlockChunkCount, &c.peerSet)
-	if err != nil {
-		return common.Block{}, err
-	}
+	blocks, merkleRoots := receiveMultipleBlocks(round, c.demultiplexer, c.nodeConfig.BlockChunkCount, &c.peerSet, c.nodeConfig.LeaderCount)
 	c.statLogger.LogBlockReceive(time.Since(startTime).Milliseconds())
 
-	valid := validateBlock(block, previousBlockHash)
-	if !valid {
-		return common.Block{}, ErrBlockNotValid
+	for _, block := range blocks {
+		valid := validateBlock(block, previousBlockHash)
+		if !valid {
+			panic(ErrBlockNotValid)
+		}
 	}
 
-	if !bytes.Equal(proposeVote.BlockHash, merkleRoot) {
-		return common.Block{}, ErrDecidedOnDifferentBlock
+	for i := range proposeVotes {
+		if !bytes.Equal(proposeVotes[i].BlockHash[0], merkleRoots[i]) {
+			panic(ErrDecidedOnDifferentBlock)
+		}
 	}
-
-	// I am returning accept votes but I do not know how to use them!!!!
-	//log.Printf("---Common Path---\n")
-	c.commonPath(round, merkleRoot)
-
-	return block, nil
-}
-
-func (c *RapidchainConsensus) commonPath(round int, merkleRoot []byte) []common.Vote {
 
 	// vote echo
-	c.vote(common.EchoTag, round, merkleRoot, nil)
+	c.vote(common.EchoTag, round, merkleRoots, nil)
 
 	// ECHO EVENT
 	minVoteCount := (c.nodeConfig.NodeCount / 2) + 1
 	//log.Printf("waiting for %d echoes \n", minVoteCount)
-	startTime := time.Now()
-	echoVotes := receiveEchoVotes(round, c.demultiplexer, minVoteCount, merkleRoot, &c.peerSet)
+	startTime = time.Now()
+	echoVotes := receiveEchoVotes(round, c.demultiplexer, minVoteCount, merkleRoots, &c.peerSet)
 	c.statLogger.LogEcho(time.Since(startTime).Milliseconds())
 
 	acceptProof := common.AcceptProof{EchoVotes: echoVotes}
-	c.vote(common.AcceptTag, round, merkleRoot, &acceptProof)
+	c.vote(common.AcceptTag, round, merkleRoots, &acceptProof)
 
 	// ACCEPT EVENT
 	//log.Printf("waiting for %d accept \n", minVoteCount)
 	startTime = time.Now()
-	acceptVotes := receiveAcceptVotes(round, c.demultiplexer, minVoteCount, merkleRoot, &c.peerSet)
+	receiveAcceptVotes(round, c.demultiplexer, minVoteCount, merkleRoots, &c.peerSet)
 	c.statLogger.LogAccept(time.Since(startTime).Milliseconds())
 
 	c.statLogger.LogEndOfRound()
 
 	// I am returning accept votes but I do not know how to use them!!!!
-	return acceptVotes
+	return blocks
 }
 
-func (c *RapidchainConsensus) vote(tag byte, round int, merkleRoot []byte, proof *common.AcceptProof) {
+func (c *RapidchainConsensus) vote(tag byte, round int, merkleRoots [][]byte, proof *common.AcceptProof) {
 	vote := common.Vote{
 		Issuer:    c.publicKey,
 		Tag:       tag,
 		Round:     round,
-		BlockHash: merkleRoot,
+		BlockHash: merkleRoots,
 	}
 
 	if proof != nil {

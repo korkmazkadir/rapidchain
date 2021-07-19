@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"log"
@@ -138,40 +139,62 @@ func runConsensus(rc *consensus.RapidchainConsensus, numberOfRounds int, nodeID 
 	log.Println("Consensus started")
 
 	// genesis block
-	previousBlock := common.Block{Issuer: []byte("initial block"), Round: 0, Payload: []byte("hello world")}
+	previousBlock := []common.Block{{Issuer: []byte("initial block"), Round: 0, Payload: []byte("hello world")}}
 
 	currentRound := 1
 	for currentRound <= numberOfRounds {
 
 		log.Printf("+++++++++ Round %d +++++++++++++++\n", currentRound)
 
-		var block common.Block
-		var err error
+		var block []common.Block
 
 		if isElectedAsLeader(nodeList, currentRound, nodeID, leaderCount) {
 			log.Println("elected as leader")
-			b := createBlock(currentRound, nodeID, previousBlock.Hash(), blockSize)
+			b := createBlock(currentRound, nodeID, hashBlock(previousBlock), blockSize)
 
-			block, err = rc.Propose(currentRound, b, previousBlock.Hash())
-			if err != nil {
-				panic(err)
-			}
+			block = rc.Propose(currentRound, b, hashBlock(previousBlock))
 
 		} else {
 
-			block, err = rc.Decide(currentRound, previousBlock.Hash())
-			if err != nil {
-				panic(err)
-			}
+			block = rc.Decide(currentRound, hashBlock(previousBlock))
+
 		}
+
+		payloadSize := 0
+		for i := range block {
+			payloadSize += len(block[i].Payload)
+		}
+
+		log.Printf("appended payload size is %d bytes\n", payloadSize)
 
 		previousBlock = block
 		//log.Printf("decided block hash %x\n", encodeBase64(block.Hash()[:15]))
 
 		currentRound++
 		//time.Sleep(2 * time.Second)
+
 	}
 
+}
+
+func hashBlock(blocks []common.Block) []byte {
+
+	if len(blocks) == 1 {
+		return blocks[0].Hash()
+	}
+
+	var hashSlice []byte
+	for i := range blocks {
+		hashSlice = append(hashSlice, blocks[i].Hash()...)
+	}
+
+	h := sha256.New()
+	_, err := h.Write(hashSlice)
+	if err != nil {
+		panic(err)
+	}
+
+	return h.Sum(nil)
 }
 
 // utils
@@ -218,14 +241,16 @@ func isElectedAsLeader(nodeList []registery.NodeInfo, round int, nodeID int, lea
 	rand.Seed(int64(round))
 	rand.Shuffle(len(nodeList), func(i, j int) { nodeList[i], nodeList[j] = nodeList[j], nodeList[i] })
 
-	log.Printf("id of the elected leader is %d\n", nodeList[0].ID)
-
+	var electedLeaders []int
 	for i := 0; i < leaderCount; i++ {
+		electedLeaders = append(electedLeaders, nodeList[i].ID)
 		if nodeList[i].ID == nodeID {
 			log.Println("elected as leader")
 			return true
 		}
 	}
+
+	log.Printf("Elected leaders: %v\n", electedLeaders)
 
 	return false
 }
