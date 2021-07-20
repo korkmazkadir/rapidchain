@@ -3,7 +3,7 @@
   "EpochSeed": "AQIDBAU=",
   "EndRound": 11,
   "GossipFanout": 8,
-  "LeaderCount" : 2,
-  "BlockSize": 2097152,
+  "LeaderCount" : 4,
+  "BlockSize": 8000000,
   "BlockChunkCount": 128
 }

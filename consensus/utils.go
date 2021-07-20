@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"encoding/base64"
-	"log"
+	"fmt"
 	"sort"
 
 	"github.com/korkmazkadir/rapidchain/common"
@@ -47,33 +47,14 @@ func receiveMultipleBlocks(round int, demux *common.Demux, chunkCount int, peerS
 	receiver := newBlockReceiver(leaderCount, chunkCount)
 	for !receiver.ReceivedAll() {
 		c := <-chunkChan
+		if !validateChunk(c) {
+			panic("invalid chunk\n")
+		}
 		receiver.AddChunk(c)
 		peerSet.ForwardChunk(c)
 	}
 
 	return receiver.GetBlocks()
-}
-
-func receiveProposeVote(round int, demux *common.Demux, peerSet *network.PeerSet) common.Vote {
-
-	proposeChannel, err := demux.GetVoteChan(round, common.ProposeTag)
-	if err != nil {
-		panic(err)
-	}
-
-	var proposeVote common.Vote
-	for {
-
-		proposeVote = <-proposeChannel
-		if !validateVote(proposeVote, nil) {
-			log.Printf("invalid propose vote recevied: %+v\n", proposeVote)
-			continue
-		}
-
-		peerSet.ForwardVote(proposeVote)
-		return proposeVote
-	}
-
 }
 
 func receiveMultipleProposeVotes(round int, demux *common.Demux, peerSet *network.PeerSet, leaderCount int) []common.Vote {
@@ -88,8 +69,7 @@ func receiveMultipleProposeVotes(round int, demux *common.Demux, peerSet *networ
 
 		vote := <-proposeChannel
 		if !validateVote(vote, nil) {
-			log.Printf("invalid propose vote recevied: %+v\n", vote)
-			continue
+			panic(fmt.Errorf("invalid propose vote recevied: %+v", vote))
 		}
 
 		peerSet.ForwardVote(vote)
@@ -126,8 +106,7 @@ func receiveEchoVotes(round int, demux *common.Demux, minVoteCount int, merkleRo
 		ev := <-echoChannel
 
 		if !AreTheyEqual(merkleRoots, ev.BlockHash) || !validateVote(ev, merkleRoots) {
-			log.Printf("echo vore received for undefined merkleroot \n")
-			continue
+			panic(fmt.Errorf("echo vore received for undefined merkleroot"))
 		}
 
 		echoVotes = append(echoVotes, ev)
@@ -176,7 +155,7 @@ func receiveAcceptVotes(round int, demux *common.Demux, minVoteCount int, merkle
 		for i := range av.Proof.EchoVotes {
 			isEchoVotesValid = isEchoVotesValid && validateVote(av.Proof.EchoVotes[i], merkleRoots)
 			if !isEchoVotesValid {
-				break
+				panic("invalid accept vote")
 			}
 		}
 
@@ -194,14 +173,35 @@ func receiveAcceptVotes(round int, demux *common.Demux, minVoteCount int, merkle
 	}
 }
 
+func validateChunk(chunk common.BlockChunk) bool {
+
+	result, err := common.VerifyContentWithPath(chunk.Authenticator.MerkleRoot, chunk, chunk.Authenticator.Path, chunk.Authenticator.Index)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if !result {
+		panic("merkle path is not correct")
+	}
+
+	result = ed25519.Verify(chunk.Issuer, chunk.Hash(), chunk.Signature)
+
+	if !result {
+		panic("chunks signature is not correct")
+	}
+
+	return result
+}
+
 func validateBlock(block common.Block, previousBlockHash []byte) bool {
 
-	return true
+	return bytes.Equal(block.PrevBlockHash, previousBlockHash)
 }
 
 func validateVote(vote common.Vote, merkleRoots [][]byte) bool {
 
-	return true
+	return ed25519.Verify(vote.Issuer, vote.Hash(), vote.Signature)
 }
 
 func signHash(hash []byte, keyPrive ed25519.PrivateKey) []byte {

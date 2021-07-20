@@ -151,7 +151,7 @@ func runConsensus(rc *consensus.RapidchainConsensus, numberOfRounds int, nodeID 
 
 		if isElectedAsLeader(nodeList, currentRound, nodeID, leaderCount) {
 			log.Println("elected as leader")
-			b := createBlock(currentRound, nodeID, hashBlock(previousBlock), blockSize)
+			b := createBlock(currentRound, nodeID, hashBlock(previousBlock), blockSize, leaderCount)
 
 			block = rc.Propose(currentRound, b, hashBlock(previousBlock))
 

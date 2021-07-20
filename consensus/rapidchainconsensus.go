@@ -59,6 +59,12 @@ func (c *RapidchainConsensus) Propose(round int, block common.Block, previousBlo
 	chunks, merkleRoot := common.ChunkBlock(block, c.nodeConfig.BlockChunkCount)
 	//log.Printf("proposing block %x\n", encodeBase64(merkleRoot[:15]))
 
+	// signs chunks
+	for i := range chunks {
+		chunks[i].Signature = signHash(chunks[i].Hash(), c.privateKey)
+		chunks[i].Issuer = c.publicKey
+	}
+
 	// disseminate chunks over different nodes
 	c.peerSet.DissaminateChunks(chunks)
 
