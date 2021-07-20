@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"net"
 	"net/rpc"
@@ -199,12 +200,14 @@ func hashBlock(blocks []common.Block) []byte {
 
 // utils
 
-func createBlock(round int, nodeID int, previousBlockHash []byte, blockSize int) common.Block {
+func createBlock(round int, nodeID int, previousBlockHash []byte, blockSize int, leaderCount int) common.Block {
+
+	payloadSize := int(math.Ceil(float64(blockSize) / float64(leaderCount)))
 
 	block := common.Block{
 		Round:         round,
 		Issuer:        []byte{byte(nodeID)},
-		Payload:       getRandomByteSlice(blockSize),
+		Payload:       getRandomByteSlice(payloadSize),
 		PrevBlockHash: previousBlockHash,
 	}
 
