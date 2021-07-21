@@ -1,0 +1,121 @@
+---
+title: "Rapidchain++ Statistics"
+author: "Kadir Korkmaz"
+date: "July 12, 2021"
+output: pdf_document
+knit: (function(inputFile, encoding) { 
+      workingDir <- '/home/kadir/Desktop/128-Chunks';
+      rmarkdown::render(inputFile,
+                        encoding=encoding,
+                        knit_root_dir = workingDir,
+                        output_file=file.path(workingDir, 'experiment-report.pdf')) })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(knitr)
+
+
+experimentDF <- read.table('experiment.stats', sep = '\t',header = FALSE)
+
+
+
+colnames(experimentDF) <- c( "MacroBlockSize", "ConcurrencyConstant", "ChunkSize",  "NodeID","Round","Type","ElapsedTime")
+
+
+printSummaryStats <- function(df, column) {
+  summ <- df %>% summarise(min = min(column), mean= mean(column), sd= sd(column), max = max(column))
+  kable(summ)
+}
+
+printConfidenceInterval <- function(column) {
+  r <- CI(column, ci=0.95)
+  kable(r)
+}
+
+
+printMeanBarChart <- function(df){
+    
+  grouped_df <- df %>% 
+                  group_by(MacroBlockSize, ConcurrencyConstant ) %>%
+                  summarise(
+                    Min = min(ElapsedTime),
+                    Q1 = quantile(ElapsedTime, 0.25),
+                    Median = median(ElapsedTime),
+                    Mean = mean(ElapsedTime),
+                    Q3 = quantile(ElapsedTime, 0.75),
+                    Max = max(ElapsedTime)
+                  )
+  
+  p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Mean, group=ConcurrencyConstant, color=factor(ConcurrencyConstant))) +
+    geom_line(aes( linetype=factor(ConcurrencyConstant), color=factor(ConcurrencyConstant) ))+
+    geom_point() +
+    labs( x = "Macro Block Size (MB)", y = "Mean Elapsed Time (ms)", color = "CC", linetype="CC" )+
+    theme(legend.position="top",legend.box="vertical", legend.margin=margin())+
+    scale_x_continuous(labels = as.character(grouped_df$MacroBlockSize), breaks = grouped_df$MacroBlockSize)
+  
+  
+  
+  t <- kable(grouped_df, n=100)
+
+  return( list("plot" = p , "table" = t ))
+}
+
+```
+
+
+```{r, echo=FALSE, fig.height=2, warning=FALSE}
+proposedDF <- experimentDF %>% filter(Type == "PROPOSED")
+blockReceivedDF <- experimentDF %>% filter(Type == "BLOCK_RECEIVED")
+echoDF <-experimentDF %>% filter(Type == "ECHO")
+acceptDF <-experimentDF %>% filter(Type == "ACCEPT")
+endOfRound <-experimentDF %>% filter(Type == "END_OF_ROUND")
+
+
+#printMeanBarChart(proposedDF)
+```
+
+\newpage
+## Round Latency
+
+```{r, echo=FALSE, warning=FALSE}
+
+printMeanBarChart(endOfRound)
+```
+
+\newpage
+## Propose Time
+
+```{r, echo=FALSE,  warning=FALSE}
+
+printMeanBarChart(proposedDF)
+```
+
+\newpage
+## Block Receive Time
+
+```{r, echo=FALSE, warning=FALSE}
+
+printMeanBarChart(blockReceivedDF)
+```
+
+\newpage
+## Echo Time
+
+```{r, echo=FALSE,  warning=FALSE}
+
+printMeanBarChart(echoDF)
+```
+
+\newpage
+## Accept Time
+
+```{r, echo=FALSE, warning=FALSE}
+
+printMeanBarChart(acceptDF)
+```

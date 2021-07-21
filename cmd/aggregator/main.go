@@ -61,7 +61,7 @@ func appendToLogs(config registery.NodeConfig, stats *os.File, globalStatFile *o
 	for scanner.Scan() {
 
 		statLine := scanner.Text()
-		globalStatLine := fmt.Sprintf("%s\t%s", prefix, statLine)
+		globalStatLine := fmt.Sprintf("%s%s", prefix, statLine)
 		_, err := fmt.Fprintln(globalStatFile, globalStatLine)
 		if err != nil {
 			panic(err)
