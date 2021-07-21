@@ -61,8 +61,8 @@ func (c *RapidchainConsensus) Propose(round int, block common.Block, previousBlo
 
 	// signs chunks
 	for i := range chunks {
-		chunks[i].Signature = signHash(chunks[i].Hash(), c.privateKey)
 		chunks[i].Issuer = c.publicKey
+		chunks[i].Signature = signHash(chunks[i].Hash(), c.privateKey)
 	}
 
 	// disseminate chunks over different nodes
@@ -71,7 +71,7 @@ func (c *RapidchainConsensus) Propose(round int, block common.Block, previousBlo
 	// vote propose
 	c.vote(common.ProposeTag, round, [][]byte{merkleRoot}, nil)
 
-	return c.commonPath(round, merkleRoot)
+	return c.commonPath(round, previousBlockHash)
 }
 
 func (c *RapidchainConsensus) Decide(round int, previousBlockHash []byte) []common.Block {

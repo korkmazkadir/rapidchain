@@ -174,6 +174,8 @@ func runConsensus(rc *consensus.RapidchainConsensus, numberOfRounds int, nodeID 
 		currentRound++
 		//time.Sleep(2 * time.Second)
 
+		log.Printf("Appended block: %x\n", encodeBase64(hashBlock(block)[:15]))
+
 	}
 
 }
