@@ -126,9 +126,9 @@ func (c *RapidchainConsensus) commonPath(round int, previousBlockHash []byte) []
 
 	// ACCEPT EVENT
 	//log.Printf("waiting for %d accept \n", minVoteCount)
-	startTime = time.Now()
-	receiveAcceptVotes(round, c.demultiplexer, minVoteCount, merkleRoots, &c.peerSet)
-	c.statLogger.LogAccept(time.Since(startTime).Milliseconds())
+	//startTime = time.Now()
+	//receiveAcceptVotes(round, c.demultiplexer, minVoteCount, merkleRoots, &c.peerSet)
+	//c.statLogger.LogAccept(time.Since(startTime).Milliseconds())
 
 	c.statLogger.LogEndOfRound()
 
