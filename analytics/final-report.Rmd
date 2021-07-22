@@ -4,7 +4,7 @@ author: "Kadir Korkmaz"
 date: "July 12, 2021"
 output: pdf_document
 knit: (function(inputFile, encoding) { 
-      workingDir <- '/home/kadir/Desktop/128-Chunks';
+      workingDir <- '/Users/kadir/Desktop/128-Chunks';
       rmarkdown::render(inputFile,
                         encoding=encoding,
                         knit_root_dir = workingDir,
@@ -69,53 +69,61 @@ printMeanBarChart <- function(df){
 ```
 
 
-```{r, echo=FALSE, fig.height=2, warning=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 proposedDF <- experimentDF %>% filter(Type == "PROPOSED")
 blockReceivedDF <- experimentDF %>% filter(Type == "BLOCK_RECEIVED")
 echoDF <-experimentDF %>% filter(Type == "ECHO")
 acceptDF <-experimentDF %>% filter(Type == "ACCEPT")
 endOfRound <-experimentDF %>% filter(Type == "END_OF_ROUND")
 
-
-#printMeanBarChart(proposedDF)
 ```
 
 \newpage
 ## Round Latency
 
-```{r, echo=FALSE, warning=FALSE}
+```{r, echo=FALSE, fig.height=4, warning=FALSE}
 
-printMeanBarChart(endOfRound)
+result=printMeanBarChart(endOfRound)
+result$plot
+result$table
 ```
 
 \newpage
 ## Propose Time
 
-```{r, echo=FALSE,  warning=FALSE}
+```{r, echo=FALSE, fig.height=4, warning=FALSE}
 
-printMeanBarChart(proposedDF)
+result=printMeanBarChart(proposedDF)
+result$plot
+result$table
 ```
 
 \newpage
 ## Block Receive Time
 
-```{r, echo=FALSE, warning=FALSE}
+```{r, echo=FALSE, fig.height=4, warning=FALSE}
 
-printMeanBarChart(blockReceivedDF)
+result=printMeanBarChart(blockReceivedDF)
+result$plot
+result$table
 ```
 
 \newpage
 ## Echo Time
 
-```{r, echo=FALSE,  warning=FALSE}
+```{r, echo=FALSE, fig.height=4,  warning=FALSE}
 
-printMeanBarChart(echoDF)
+result=printMeanBarChart(echoDF)
+result$plot
+result$table
 ```
 
 \newpage
 ## Accept Time
 
-```{r, echo=FALSE, warning=FALSE}
+```{r, echo=FALSE, fig.height=4, warning=FALSE}
 
-printMeanBarChart(acceptDF)
+result=printMeanBarChart(acceptDF)
+result$plot
+result$table
 ```
