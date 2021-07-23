@@ -1,11 +1,8 @@
 package common
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"fmt"
-
-	"github.com/cbergoon/merkletree"
 )
 
 const (
@@ -104,7 +101,6 @@ func (v Vote) Hash() []byte {
 // BlockChunk defines a chunk of a block.
 // BlockChunks disseminate fater in the gossip network because they are very small compared to a Block
 type BlockChunk struct {
-	// Publick Key of the issuer
 	Issuer []byte
 
 	// Round of the block
@@ -116,84 +112,15 @@ type BlockChunk struct {
 	// Chunk index
 	ChunkIndex int
 
-	// Chunk authenticator to validate chunk
-	Authenticator ChunkAuthenticator
-
 	// Chunk payload
 	Payload []byte
-
-	// Signature on the hash of the BlockChunk
-	Signature []byte
-
-	payloadHash []byte
 }
 
 // Hash produces the digest of a BlockChunk.
 // It considers all fields of a BlockChunk.
 func (c BlockChunk) Hash() []byte {
 
-	str := fmt.Sprintf("%x,%d,%d,%d,%x,%x", c.Issuer, c.Round, c.ChunkCount, c.ChunkIndex, c.Authenticator.Hash(), c.Payload)
-	h := sha256.New()
-	_, err := h.Write([]byte(str))
-	if err != nil {
-		panic(err)
-	}
-
-	return h.Sum(nil)
-}
-
-// CalculateHash is defined in merkletree interface.
-// This method calculates the hash of the payload.
-func (c BlockChunk) CalculateHash() ([]byte, error) {
-
-	if c.payloadHash == nil {
-		h := sha256.New()
-		_, err := h.Write(c.Payload)
-		if err != nil {
-			return nil, err
-		}
-
-		c.payloadHash = h.Sum(nil)
-	}
-
-	return c.payloadHash, nil
-}
-
-// Equals is defined in merkletree interface
-// This method compares payloads.
-func (c BlockChunk) Equals(other merkletree.Content) (bool, error) {
-
-	currentHash, err := c.CalculateHash()
-	if err != nil {
-		return false, nil
-	}
-
-	otherHash, err := other.CalculateHash()
-	if err != nil {
-		return false, nil
-	}
-
-	return bytes.Equal(currentHash, otherHash), nil
-}
-
-// ChunkAuthenticator contains all the information to authenticate a BlockChunk
-type ChunkAuthenticator struct {
-
-	// Root of the Merkle tree
-	MerkleRoot []byte
-
-	// Merkle path of the current chunk
-	Path [][]byte
-
-	// Path index
-	Index []int64
-}
-
-// Hash produces the digest of a ChunkAuthenticator.
-// It considers all fields of a ChunkAuthenticator.
-func (c *ChunkAuthenticator) Hash() []byte {
-
-	str := fmt.Sprintf("%x,%x,%v", c.MerkleRoot, c.Path, c.Index)
+	str := fmt.Sprintf("%d,%d,%d,%x,%x", c.Round, c.ChunkCount, c.ChunkIndex, c.Payload, c.Issuer)
 	h := sha256.New()
 	_, err := h.Write([]byte(str))
 	if err != nil {

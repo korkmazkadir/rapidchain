@@ -2,21 +2,16 @@ package common
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
 	"math"
-
-	"github.com/cbergoon/merkletree"
 )
 
-func ChunkBlock(block Block, numberOfChunks int) ([]BlockChunk, []byte) {
+func ChunkBlock(block Block, numberOfChunks int) []BlockChunk {
 
 	blockBytes := encodeToBytes(block)
 	chunks := constructChunks(block, blockBytes, numberOfChunks)
-	merkleRootHash := createAuthenticators(chunks)
-
-	return chunks, merkleRootHash
+	return chunks
 }
 
 // mergeChunks assumes that sanity checks are done before calling this function
@@ -28,37 +23,6 @@ func MergeChunks(chunks []BlockChunk) Block {
 	}
 
 	return decodeToBlock(blockData)
-}
-
-// createAuthenticators returns mekle root
-func createAuthenticators(chunks []BlockChunk) []byte {
-
-	// construct merkletree
-	var content []merkletree.Content
-	for i := range chunks {
-		content = append(content, chunks[i])
-	}
-
-	tree, err := merkletree.NewTree(content)
-	if err != nil {
-		panic(err)
-	}
-
-	// calculates the root of the merkle tree
-	merkleRoot := tree.MerkleRoot()
-
-	// creates merklepath for each chunk
-	for i := range chunks {
-		path, index, err := tree.GetMerklePath(chunks[i])
-		if err != nil {
-			panic(err)
-		}
-
-		authenticator := ChunkAuthenticator{MerkleRoot: merkleRoot, Path: path, Index: index}
-		chunks[i].Authenticator = authenticator
-	}
-
-	return merkleRoot
 }
 
 func constructChunks(block Block, blockBytes []byte, numberOfChunks int) []BlockChunk {
@@ -83,7 +47,6 @@ func constructChunks(block Block, blockBytes []byte, numberOfChunks int) []Block
 		}
 
 		chunk := BlockChunk{
-			Issuer:     block.Issuer,
 			Round:      block.Round,
 			ChunkCount: numberOfChunks,
 			ChunkIndex: i,
@@ -118,39 +81,4 @@ func decodeToBlock(data []byte) Block {
 		panic(err)
 	}
 	return block
-}
-
-// VerifyContentWithPath verifies content using path information comming from GetMerklePath function, and Merkle root.
-func VerifyContentWithPath(merkleRoot []byte, content merkletree.Content, path [][]byte, index []int64) (bool, error) {
-
-	if len(path) != len(index) {
-		return false, fmt.Errorf("path or index argument is wrong")
-	}
-
-	calculatedRoot, err := content.CalculateHash()
-	if err != nil {
-		return false, err
-	}
-
-	// assumes this is same with merkletree package
-	hashStrategy := sha256.New
-
-	for i := 0; i < len(path); i++ {
-
-		h := hashStrategy()
-		if index[i] == 0 {
-			_, err = h.Write(append(path[i], calculatedRoot...))
-			calculatedRoot = h.Sum(nil)
-		} else {
-			_, err = h.Write(append(calculatedRoot, path[i]...))
-			calculatedRoot = h.Sum(nil)
-		}
-
-		if err != nil {
-			return false, err
-		}
-
-	}
-
-	return bytes.Equal(merkleRoot, calculatedRoot), nil
 }

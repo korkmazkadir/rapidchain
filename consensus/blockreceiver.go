@@ -26,7 +26,7 @@ func newBlockReceiver(leaderCount int, chunkCount int) *blockReceiver {
 
 // AddChunk stores a chunk of a block to reconstruct the whole block later
 func (r *blockReceiver) AddChunk(chunk common.BlockChunk) {
-	key := string(chunk.Authenticator.MerkleRoot)
+	key := string(chunk.Issuer)
 	chunkSlice := r.blockMap[key]
 	r.blockMap[key] = append(chunkSlice, chunk)
 
@@ -52,7 +52,7 @@ func (r *blockReceiver) ReceivedAll() bool {
 }
 
 // GetBlocks recunstruct blocks using chunks, and returns the blocks by sorting the resulting block slice according to block hashes
-func (r *blockReceiver) GetBlocks() ([]common.Block, [][]byte) {
+func (r *blockReceiver) GetBlocks() []common.Block {
 
 	if r.ReceivedAll() == false {
 		panic(fmt.Errorf("not received all block chunks to reconstruct block/s"))
@@ -65,10 +65,8 @@ func (r *blockReceiver) GetBlocks() ([]common.Block, [][]byte) {
 	sort.Strings(keys)
 
 	var blocks []common.Block
-	var merkleRoots [][]byte
-	for _, key := range keys {
 
-		merkleRoots = append(merkleRoots, []byte(key))
+	for _, key := range keys {
 
 		receivedChunks := r.blockMap[key]
 		sort.Slice(receivedChunks, func(i, j int) bool {
@@ -79,5 +77,5 @@ func (r *blockReceiver) GetBlocks() ([]common.Block, [][]byte) {
 		blocks = append(blocks, block)
 	}
 
-	return blocks, merkleRoots
+	return blocks
 }
