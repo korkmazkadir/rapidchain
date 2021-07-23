@@ -1,10 +1,10 @@
 ---
-title: "Rapidchain++ Statistics"
+title: "Rapidchain Gossip Dissemination"
 author: "Kadir Korkmaz"
-date: "July 12, 2021"
+date: "July 23, 2021"
 output: pdf_document
 knit: (function(inputFile, encoding) { 
-      workingDir <- '/Users/kadir/Desktop/128-Chunks';
+      workingDir <- '/home/kadir/Desktop/Gossip-Dissemination';
       rmarkdown::render(inputFile,
                         encoding=encoding,
                         knit_root_dir = workingDir,
@@ -55,7 +55,7 @@ printMeanBarChart <- function(df){
   p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Mean, group=ConcurrencyConstant, color=factor(ConcurrencyConstant))) +
     geom_line(aes( linetype=factor(ConcurrencyConstant), color=factor(ConcurrencyConstant) ))+
     geom_point() +
-    labs( x = "Macro Block Size (MB)", y = "Mean Elapsed Time (ms)", color = "CC", linetype="CC" )+
+    labs( x = "Macro Block Size (Bytes)", y = "Mean Elapsed Time (ms)", color = "CC", linetype="CC" )+
     theme(legend.position="top",legend.box="vertical", legend.margin=margin())+
     scale_x_continuous(labels = as.character(grouped_df$MacroBlockSize), breaks = grouped_df$MacroBlockSize)
   
@@ -79,51 +79,32 @@ endOfRound <-experimentDF %>% filter(Type == "END_OF_ROUND")
 ```
 
 \newpage
-## Round Latency
+## Experimental Setup
+
+We have conducted experiments using 10 machines from G5K (Gros cluster). On each machine, we have deployed 25 instances of gossip dissemination node thus we, in total, have deployed 250 nodes. Each node selects 8 peers in a uniformly random manner, and nodes only communicate with peers of themselves. To emulate Wide Area Network(WAN) conditions we have added bandwidth limit and latency on channels using CGroups and TC rules. Specifically, we capped the bandwidth to 20mbps, and we added one-way latency of 50ms (thus Round Trip Time is 100 ms). In each experiment we have collected data for 20 rounds.
+
+As in Rapidchain, nodes are using chunked gossip dissemination. The idea of chunked gossip dissemination is that a big message is chunked into smaller messages, and each chunk is disseminated over a different peer. This technique improves the dissemination of large messages.
+
+In each round, nodes elect leader/s and wait for the block/s. Leader election relies on a deterministic function. Upon receiving a chunk of a message, a node forwards the chunk to 8 peers of its (so the fanout is 8). Upon receiving all chunks from leaders, nodes reconstruct the block locally and proceed to the next round.
+
+
+In this set of experiments, we try to see the effect of multiple leaders using chunked gossiped dissemination. For each round, we have elected between 1 to 16 leaders, and each elected leader submits a micro block. Each leader disseminated the block using chunked gossiped dissemination. Regardless of the number of leaders, we have chunked a macroblock into 128 chunks. This means that the number of chunks that need to be disseminated is equal to 128 * the number of leaders (CC) in any round.
+
+
+
+## Results
+
+The multiple leader approach did not provide expected performance improvements in this setup. This is mainly because of chunked gossip dissemination. Chunked gossip dissemination has already improved the gossip dissemination performance. The multiple-leader approach disseminates smaller chunks over different leaders. 
+
+These results are consistent with previous results of simulations. In the simulations, we have shown that creating chunks of a message and disseminating over a single leader is equal to disseminating the same chunks using multiple leaders. Also, in the simulations we have shown that chunking messages further does not provide better performance on the contrary it might deteriorate the dissemination performance because of added overhead.
+
+
+\newpage
+## Block Propagation Time Statistics
 
 ```{r, echo=FALSE, fig.height=4, warning=FALSE}
 
 result=printMeanBarChart(endOfRound)
-result$plot
-result$table
-```
-
-\newpage
-## Propose Time
-
-```{r, echo=FALSE, fig.height=4, warning=FALSE}
-
-result=printMeanBarChart(proposedDF)
-result$plot
-result$table
-```
-
-\newpage
-## Block Receive Time
-
-```{r, echo=FALSE, fig.height=4, warning=FALSE}
-
-result=printMeanBarChart(blockReceivedDF)
-result$plot
-result$table
-```
-
-\newpage
-## Echo Time
-
-```{r, echo=FALSE, fig.height=4,  warning=FALSE}
-
-result=printMeanBarChart(echoDF)
-result$plot
-result$table
-```
-
-\newpage
-## Accept Time
-
-```{r, echo=FALSE, fig.height=4, warning=FALSE}
-
-result=printMeanBarChart(acceptDF)
 result$plot
 result$table
 ```
