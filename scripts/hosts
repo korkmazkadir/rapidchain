@@ -1,14 +1,14 @@
 
-gros-12.nancy.grid5000.fr
-gros-13.nancy.grid5000.fr
-gros-16.nancy.grid5000.fr
-gros-59.nancy.grid5000.fr
-gros-119.nancy.grid5000.fr
-gros-120.nancy.grid5000.fr
-gros-121.nancy.grid5000.fr
-gros-122.nancy.grid5000.fr
-gros-123.nancy.grid5000.fr
-gros-124.nancy.grid5000.fr
+parasilo-1.rennes.grid5000.fr
+parasilo-7.rennes.grid5000.fr
+parasilo-8.rennes.grid5000.fr
+parasilo-9.rennes.grid5000.fr
+parasilo-10.rennes.grid5000.fr
+parasilo-11.rennes.grid5000.fr
+parasilo-13.rennes.grid5000.fr
+parasilo-15.rennes.grid5000.fr
+parasilo-27.rennes.grid5000.fr
+parasilo-28.rennes.grid5000.fr
 
 
 
@@ -18,4 +18,4 @@ ansible_python_interpreter=/usr/bin/python3
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 
 [registry]
-gros-12.nancy.grid5000.fr
+parasilo-1.rennes.grid5000.fr

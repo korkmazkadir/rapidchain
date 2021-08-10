@@ -26,6 +26,9 @@ type Demux struct {
 	acceptVoteChanMap map[int]chan Vote
 
 	blockChunkChanMap map[int]chan BlockChunk
+
+	stateUpdateChan    chan StateUpdate
+	connectRequestChan chan ConnectRequest
 }
 
 // NewDemultiplexer creates a new demultiplexer with initial round value
@@ -38,6 +41,9 @@ func NewDemultiplexer(initialRound int) *Demux {
 	demux.echoVoteChanMap = make(map[int]chan Vote)
 	demux.acceptVoteChanMap = make(map[int]chan Vote)
 	demux.blockChunkChanMap = make(map[int]chan BlockChunk)
+
+	demux.stateUpdateChan = make(chan StateUpdate, channelCapacity)
+	demux.connectRequestChan = make(chan ConnectRequest, channelCapacity)
 
 	return demux
 }
@@ -88,6 +94,28 @@ func (d *Demux) EnqueVote(vote Vote) {
 	voteChan <- vote
 
 	d.markAsProcessed(voteRound, voteHash)
+}
+
+func (d *Demux) EnqueStateUpdate(update StateUpdate) {
+
+	// this must be thread safe
+	d.stateUpdateChan <- update
+}
+
+func (d *Demux) GetStateUpdateChan() chan StateUpdate {
+
+	return d.stateUpdateChan
+}
+
+func (d *Demux) EnqueConnectRequest(connectReq ConnectRequest) {
+
+	// this must be thread safe
+	d.connectRequestChan <- connectReq
+}
+
+func (d *Demux) GetConnectRequestChan() chan ConnectRequest {
+
+	return d.connectRequestChan
 }
 
 // GetVoteChan returns vote channel

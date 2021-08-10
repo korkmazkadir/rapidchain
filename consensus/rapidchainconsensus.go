@@ -19,7 +19,7 @@ var ErrDecidedOnDifferentBlock = errors.New("decided on a different block, possi
 type RapidchainConsensus struct {
 	demultiplexer *common.Demux
 	nodeConfig    registery.NodeConfig
-	peerSet       network.PeerSet
+	peerSet       *network.PeerSet
 
 	publicKey  ed25519.PublicKey
 	privateKey ed25519.PrivateKey
@@ -27,7 +27,7 @@ type RapidchainConsensus struct {
 	statLogger *common.StatLogger
 }
 
-func NewRapidchain(demux *common.Demux, config registery.NodeConfig, peerSet network.PeerSet, statLogger *common.StatLogger) *RapidchainConsensus {
+func NewRapidchain(demux *common.Demux, config registery.NodeConfig, peerSet *network.PeerSet, statLogger *common.StatLogger) *RapidchainConsensus {
 
 	keyPub, keyPrive, err := ed25519.GenerateKey(nil)
 	if err != nil {
@@ -85,7 +85,7 @@ func (c *RapidchainConsensus) commonPath(round int, previousBlockHash []byte) []
 	// BLOCK RECEIVE EVENT
 	//log.Printf("waiting for block...\n")
 	startTime := time.Now()
-	blocks := receiveMultipleBlocks(round, c.demultiplexer, c.nodeConfig.BlockChunkCount, &c.peerSet, c.nodeConfig.LeaderCount)
+	blocks := receiveMultipleBlocks(round, c.demultiplexer, c.nodeConfig.BlockChunkCount, c.peerSet, c.nodeConfig.LeaderCount)
 	c.statLogger.LogBlockReceive(time.Since(startTime).Milliseconds())
 
 	c.statLogger.LogEndOfRound()

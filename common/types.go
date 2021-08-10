@@ -129,3 +129,14 @@ func (c BlockChunk) Hash() []byte {
 
 	return h.Sum(nil)
 }
+
+type StateUpdate struct {
+	NodeID              int
+	ReceivedMessageHash []byte
+}
+
+type ConnectRequest struct {
+	NodeID     int
+	IPAddress  string
+	PortNumber int
+}

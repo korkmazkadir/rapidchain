@@ -8,3 +8,5 @@ github.com/klauspost/reedsolomon v1.9.12 h1:EyOucRmcrLH+2hqKGdoA5SM8pwPKR6BJsf3r
 github.com/klauspost/reedsolomon v1.9.12/go.mod h1:nLvuzNvy1ZDNQW30IuMc2ZWCbiqrJgdLoUS2X8HAUVg=
 github.com/korkmazkadir/merkletree v0.2.0 h1:ujI3nkxPgtlnjtaTreyu9a5xiSbQf0JTNKBZhmZ9Xi8=
 github.com/korkmazkadir/merkletree v0.2.0/go.mod h1:5c15eckUgiucMGDOCanvalj/yJnD+KAZj1qyJtRW5aM=
+golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e h1:WUoyKPm6nCo1BnNUvPGnFG3T5DUVem42yDJZZ4CNxMA=
+golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

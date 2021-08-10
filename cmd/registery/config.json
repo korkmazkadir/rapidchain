@@ -1,9 +1,9 @@
 {
   "NodeCount": 250,
   "EpochSeed": "AQIDBAU=",
-  "EndRound": 11,
+  "EndRound": 20,
   "GossipFanout": 8,
   "LeaderCount" : 4,
   "BlockSize": 8000000,
-  "BlockChunkCount": 128
+  "BlockChunkCount": 1
 }

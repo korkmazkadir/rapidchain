@@ -26,3 +26,17 @@ func (s *P2PServer) HandleVote(vote *common.Vote, reply *int) error {
 
 	return nil
 }
+
+func (s *P2PServer) HandleConnectRequest(connReq *common.ConnectRequest, reply *int) error {
+
+	s.demux.EnqueConnectRequest(*connReq)
+
+	return nil
+}
+
+func (s *P2PServer) HandleStateUpdate(stateUpdate *common.StateUpdate, reply *int) error {
+
+	s.demux.EnqueStateUpdate(*stateUpdate)
+
+	return nil
+}

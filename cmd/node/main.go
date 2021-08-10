@@ -71,7 +71,7 @@ func main() {
 		log.Printf("received node list %d/%d\n", nodeCount, nodeConfig.NodeCount)
 	}
 
-	peerSet := createPeerSet(nodeList, nodeConfig.GossipFanout, nodeInfo.ID)
+	peerSet := createPeerSet(nodeList, nodeConfig.GossipFanout, nodeInfo.ID, demux, nodeInfo)
 	statLogger := common.NewStatLogger(nodeInfo.ID)
 	rapidchain := consensus.NewRapidchain(demux, nodeConfig, peerSet, statLogger)
 
@@ -89,7 +89,7 @@ func main() {
 	log.Printf("exiting as expected...\n")
 }
 
-func createPeerSet(nodeList []registery.NodeInfo, fanOut int, nodeID int) network.PeerSet {
+func createPeerSet(nodeList []registery.NodeInfo, fanOut int, nodeID int, demux *common.Demux, nodeInfo registery.NodeInfo) *network.PeerSet {
 
 	var copyNodeList []registery.NodeInfo
 	copyNodeList = append(copyNodeList, nodeList...)
@@ -97,7 +97,7 @@ func createPeerSet(nodeList []registery.NodeInfo, fanOut int, nodeID int) networ
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(copyNodeList), func(i, j int) { copyNodeList[i], copyNodeList[j] = copyNodeList[j], copyNodeList[i] })
 
-	peerSet := network.PeerSet{}
+	peerSet := network.NewPeerSet(demux, nodeInfo.IPAddress, nodeInfo.PortNumber, nodeInfo.ID)
 
 	peerCount := 0
 	for i := 0; i < len(copyNodeList); i++ {
@@ -111,7 +111,7 @@ func createPeerSet(nodeList []registery.NodeInfo, fanOut int, nodeID int) networ
 			continue
 		}
 
-		err := peerSet.AddPeer(peer.IPAddress, peer.PortNumber)
+		err := peerSet.AddPeer(peer.IPAddress, peer.PortNumber, peer.ID)
 		if err != nil {
 			panic(err)
 		}
