@@ -59,6 +59,7 @@ func (c *RapidchainConsensus) Propose(round int, block common.Block, previousBlo
 
 	// chunks the block
 	chunks := common.ChunkBlock(block, c.nodeConfig.BlockChunkCount)
+	log.Printf("the block chunked into %d chunks \n", len(chunks))
 	//log.Printf("proposing block %x\n", encodeBase64(merkleRoot[:15]))
 
 	// signs chunks

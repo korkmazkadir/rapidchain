@@ -2,6 +2,7 @@ package consensus
 
 import (
 	"fmt"
+	"log"
 	"sort"
 
 	"github.com/korkmazkadir/rapidchain/common"
@@ -74,6 +75,9 @@ func (r *blockReceiver) GetBlocks() []common.Block {
 		})
 
 		block := common.MergeChunks(receivedChunks)
+
+		log.Printf("[%s] chunked count of the recived block is %d payload is %d bytes\n", encodeBase64([]byte(key[:15])), len(receivedChunks), len(block.Payload))
+
 		blocks = append(blocks, block)
 	}
 
