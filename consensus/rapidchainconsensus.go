@@ -3,6 +3,7 @@ package consensus
 import (
 	"crypto/ed25519"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/korkmazkadir/rapidchain/common"
@@ -23,6 +24,8 @@ type RapidchainConsensus struct {
 
 	publicKey  ed25519.PublicKey
 	privateKey ed25519.PrivateKey
+
+	savedMessageCount int
 
 	statLogger *common.StatLogger
 }
@@ -89,6 +92,12 @@ func (c *RapidchainConsensus) commonPath(round int, previousBlockHash []byte) []
 	c.statLogger.LogBlockReceive(time.Since(startTime).Milliseconds())
 
 	c.statLogger.LogEndOfRound()
+
+	c.savedMessageCount += c.peerSet.GetSavedCount()
+
+	log.Printf("saved messages in the round: %d \n", c.peerSet.GetSavedCount())
+	log.Printf("total saved messages: %d \n", c.savedMessageCount)
+	c.peerSet.ClearSavedCount()
 
 	// I am returning accept votes but I do not know how to use them!!!!
 	return blocks

@@ -19,6 +19,8 @@ type PeerSet struct {
 	portNumber int
 	nodeID     int
 
+	savedCount int
+
 	// protects following fields
 	mutex   sync.Mutex
 	inPeers []*P2PClient
@@ -72,7 +74,6 @@ func (p *PeerSet) ForwardChunk(chunk common.BlockChunk) {
 	p.receiveStateUpdates()
 
 	forwardCount := 0
-	savedCount := 0
 	for _, peer := range p.outPeers {
 		if peer.err != nil {
 			continue
@@ -80,7 +81,7 @@ func (p *PeerSet) ForwardChunk(chunk common.BlockChunk) {
 		forwardCount++
 
 		if _, ok := peer.stateUpdateMap[string(chunkHash)]; ok {
-			savedCount++
+			p.savedCount++
 			continue
 		}
 
@@ -91,7 +92,6 @@ func (p *PeerSet) ForwardChunk(chunk common.BlockChunk) {
 		panic(NoCorrectPeerAvailable)
 	}
 
-	log.Printf("Saved chunk count is %d \n", savedCount)
 }
 
 func (p *PeerSet) ForwardVote(vote common.Vote) {
@@ -108,6 +108,14 @@ func (p *PeerSet) ForwardVote(vote common.Vote) {
 	if forwardCount == 0 {
 		panic(NoCorrectPeerAvailable)
 	}
+}
+
+func (p *PeerSet) GetSavedCount() int {
+	return p.savedCount
+}
+
+func (p *PeerSet) ClearSavedCount() {
+	p.savedCount = 0
 }
 
 func (p *PeerSet) selectPeer(index int) *P2PClient {
