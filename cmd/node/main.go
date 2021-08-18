@@ -107,7 +107,8 @@ func createPeerSet(nodeList []registery.NodeInfo, fanOut int, nodeID int, demux 
 		}
 
 		peer := copyNodeList[i]
-		if peer.ID == nodeID {
+		// does not selects nodes from the same machine as peer
+		if peer.ID == nodeID || peer.IPAddress == nodeInfo.IPAddress {
 			continue
 		}
 
