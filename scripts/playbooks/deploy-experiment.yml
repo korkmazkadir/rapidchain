@@ -7,6 +7,13 @@
       shell: 
         cmd: pkill registery || /bin/true
 
+    - name: Add or modify nofile soft limit for the user joe
+      community.general.pam_limits:
+        domain: root
+        limit_type: soft
+        limit_item: nofile
+        value: 10000000
+
     - name: deploying registery service
       shell: cd ~/rapidchain; nohup ./registery > registery.log 2>&1 &
 
