@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/korkmazkadir/rapidchain/common"
@@ -58,6 +59,7 @@ func (c *RapidchainConsensus) Propose(round int, block common.Block, previousBlo
 	// chunks the block
 	chunks, merkleRoot := common.ChunkBlock(block, c.nodeConfig.BlockChunkCount)
 	//log.Printf("proposing block %x\n", encodeBase64(merkleRoot[:15]))
+	log.Printf("the block chunked into %d chunks \n", len(chunks))
 
 	// signs chunks
 	for i := range chunks {
