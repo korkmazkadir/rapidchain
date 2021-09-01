@@ -71,7 +71,7 @@ func main() {
 		log.Printf("received node list %d/%d\n", nodeCount, nodeConfig.NodeCount)
 	}
 
-	peerSet := createPeerSet(nodeList, nodeConfig.GossipFanout, nodeInfo.ID)
+	peerSet := createPeerSet(nodeList, nodeConfig.GossipFanout, nodeInfo)
 	statLogger := common.NewStatLogger(nodeInfo.ID)
 	rapidchain := consensus.NewRapidchain(demux, nodeConfig, peerSet, statLogger)
 
@@ -89,7 +89,7 @@ func main() {
 	log.Printf("exiting as expected...\n")
 }
 
-func createPeerSet(nodeList []registery.NodeInfo, fanOut int, nodeID int) network.PeerSet {
+func createPeerSet(nodeList []registery.NodeInfo, fanOut int, nodeInfo registery.NodeInfo) network.PeerSet {
 
 	var copyNodeList []registery.NodeInfo
 	copyNodeList = append(copyNodeList, nodeList...)
@@ -107,7 +107,7 @@ func createPeerSet(nodeList []registery.NodeInfo, fanOut int, nodeID int) networ
 		}
 
 		peer := copyNodeList[i]
-		if peer.ID == nodeID {
+		if peer.ID == nodeInfo.ID || peer.IPAddress == nodeInfo.IPAddress {
 			continue
 		}
 
