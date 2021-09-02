@@ -50,6 +50,9 @@ func NewRapidchain(demux *common.Demux, config registery.NodeConfig, peerSet net
 
 func (c *RapidchainConsensus) Propose(round int, block common.Block, previousBlockHash []byte) []common.Block {
 
+	// emulates the cost of block creation
+	c.emulateCost(len(block.Payload))
+
 	// starts a new epoch
 	c.statLogger.NewRound(round)
 
@@ -98,6 +101,10 @@ func (c *RapidchainConsensus) commonPath(round int, previousBlockHash []byte) []
 	//log.Printf("waiting for block...\n")
 	startTime = time.Now()
 	blocks, merkleRoots := receiveMultipleBlocks(round, c.demultiplexer, c.nodeConfig.BlockChunkCount, &c.peerSet, c.nodeConfig.LeaderCount)
+
+	// emulates the cost of block validation
+	c.emulateCost(c.nodeConfig.BlockSize)
+
 	c.statLogger.LogBlockReceive(time.Since(startTime).Milliseconds())
 
 	for _, block := range blocks {
@@ -153,4 +160,15 @@ func (c *RapidchainConsensus) vote(tag byte, round int, merkleRoots [][]byte, pr
 	vote.Signature = signHash(vote.Hash(), c.privateKey)
 
 	c.peerSet.ForwardVote(vote)
+}
+
+func (c *RapidchainConsensus) emulateCost(payloadSize int) {
+	//
+	// 0.13 ms unit cost to validate a transaction
+	// to emulate the cost of merkle tree creation, we have add 0.003 to the unit cost.
+	//
+	sleepTime := (float64(0.133) * float64(payloadSize/512))
+	sleepDuration := time.Duration(sleepTime) * time.Millisecond
+	log.Printf("the node will sleep to emulate tx validation, and merkle tree construction %s \n", sleepDuration)
+	time.Sleep(sleepDuration)
 }
