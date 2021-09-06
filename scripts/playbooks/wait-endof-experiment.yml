@@ -1,0 +1,9 @@
+---
+# The playbook uploads experiment artifacts to remote machines
+
+- hosts: registry
+  tasks:
+
+    - name: Wait until the file /root/rapidchain/end-of-experiment is present before continuing
+      wait_for:
+        path: /root/rapidchain/end-of-experiment

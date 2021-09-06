@@ -2,6 +2,7 @@ package registery
 
 import (
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -24,6 +25,7 @@ type NodeRegistry struct {
 	mutex           sync.Mutex
 	registeredNodes []NodeInfo
 	config          NodeConfig
+	uploadCount     int
 	statKeeper      *StatKeeper
 }
 
@@ -122,6 +124,17 @@ func (nr *NodeRegistry) UploadStats(stats *common.StatList, reply *int) error {
 	}
 
 	nr.statKeeper.SaveStats(*stats)
+
+	nr.uploadCount++
+
+	// creates an empty fie to signal the ansible
+	if nr.uploadCount == nr.config.NodeCount {
+		emptyFile, err := os.Create("/root/rapidchain/end-of-experiment")
+		if err != nil {
+			log.Fatal(err)
+		}
+		emptyFile.Close()
+	}
 
 	return nil
 }

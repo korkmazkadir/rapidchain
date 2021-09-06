@@ -7,6 +7,11 @@
       shell: 
         cmd: pkill registery || /bin/true
 
+    - name: Remove file /root/rapidchain/end-of-experiment
+      ansible.builtin.file:
+        path: /root/rapidchain/end-of-experiment
+        state: absent
+
     - name: deploying registery service
       shell: cd ~/rapidchain; nohup ./registery > registery.log 2>&1 &
 
