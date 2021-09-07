@@ -102,9 +102,6 @@ func (c *RapidchainConsensus) commonPath(round int, previousBlockHash []byte) []
 	startTime = time.Now()
 	blocks, merkleRoots := receiveMultipleBlocks(round, c.demultiplexer, c.nodeConfig.BlockChunkCount, &c.peerSet, c.nodeConfig.LeaderCount)
 
-	// emulates the cost of block validation
-	c.emulateCost(c.nodeConfig.BlockSize)
-
 	c.statLogger.LogBlockReceive(time.Since(startTime).Milliseconds())
 
 	for _, block := range blocks {

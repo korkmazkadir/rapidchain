@@ -1,14 +1,14 @@
 
 gros-3.nancy.grid5000.fr
-gros-44.nancy.grid5000.fr
+gros-19.nancy.grid5000.fr
+gros-21.nancy.grid5000.fr
+gros-22.nancy.grid5000.fr
 gros-45.nancy.grid5000.fr
 gros-65.nancy.grid5000.fr
-gros-76.nancy.grid5000.fr
-gros-77.nancy.grid5000.fr
-gros-84.nancy.grid5000.fr
 gros-87.nancy.grid5000.fr
-gros-102.nancy.grid5000.fr
-gros-112.nancy.grid5000.fr
+gros-90.nancy.grid5000.fr
+gros-96.nancy.grid5000.fr
+gros-122.nancy.grid5000.fr
 
 
 [all:vars]
