@@ -7,3 +7,4 @@
     - name: Wait until the file /root/rapidchain/end-of-experiment is present before continuing
       wait_for:
         path: /root/rapidchain/end-of-experiment
+        timeout: 3600
