@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/korkmazkadir/rapidchain/common"
 )
@@ -26,12 +27,13 @@ type NodeRegistry struct {
 	registeredNodes []NodeInfo
 	config          NodeConfig
 	uploadCount     int
+	isTimerRunning  bool
 	statKeeper      *StatKeeper
 }
 
 func NewNodeRegistry(config NodeConfig) *NodeRegistry {
 
-	return &NodeRegistry{config: config}
+	return &NodeRegistry{config: config, isTimerRunning: false}
 }
 
 // Register registers a node with specific node info
@@ -129,12 +131,31 @@ func (nr *NodeRegistry) UploadStats(stats *common.StatList, reply *int) error {
 
 	// creates an empty fie to signal the ansible
 	if nr.uploadCount == nr.config.NodeCount {
-		emptyFile, err := os.Create("/root/rapidchain/end-of-experiment")
-		if err != nil {
-			log.Fatal(err)
-		}
-		emptyFile.Close()
+		createSignalFile()
+	}
+
+	percentOfUploads := float64(nr.uploadCount*100) / float64(nr.config.NodeCount)
+
+	if percentOfUploads > 95 && !nr.isTimerRunning {
+		nr.isTimerRunning = true
+		go func() {
+			log.Println("timer is running...")
+			time.Sleep(1 * time.Minute)
+			createSignalFile()
+		}()
 	}
 
 	return nil
+}
+
+func createSignalFile() {
+
+	emptyFile, err := os.OpenFile("/root/rapidchain/end-of-experiment", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = emptyFile.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
