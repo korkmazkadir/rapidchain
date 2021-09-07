@@ -1,7 +1,7 @@
 #!/bin/bash
 
-macroblock_sizes=(2 4 8 16)
-concurrency_constants=(1 2 4 8 16)
+macroblock_sizes=(2 4 )
+concurrency_constants=(1 8)
 chunk_count=128
 
 rm -rf experiments_to_conduct
@@ -13,7 +13,8 @@ do
     macroblock_size_real=$(($macroblock_size * 1000000))
     for cc in "${concurrency_constants[@]}"
     do
-        chunk_count=$((64 * macroblock_size / $cc))
+        #chunk_count=$((64 * macroblock_size / $cc))
+        chunk_count=$((128 / $cc))
         printf -v file_name "%04d_%dMB_CC%d.json" ${file_index} ${macroblock_size} ${cc}
         echo "${file_name}"
 

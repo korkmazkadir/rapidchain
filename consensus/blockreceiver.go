@@ -21,9 +21,10 @@ type blockReceiver struct {
 func newBlockReceiver(leaderCount int, chunkCount int) *blockReceiver {
 
 	r := &blockReceiver{
-		blockCount: leaderCount,
-		chunkCount: chunkCount,
-		blockMap:   make(map[string][]common.BlockChunk),
+		blockCount:     leaderCount,
+		chunkCount:     chunkCount,
+		blockMap:       make(map[string][]common.BlockChunk),
+		receivedBlocks: make(map[string]common.Block),
 	}
 
 	return r

@@ -8,7 +8,7 @@ function deploy {
     rm ./artifacts/config.json
 
     # moves new config file
-    mv "$experimentConfig" ./artifacts/config.json
+    cp "$experimentConfig" ./artifacts/config.json
 
     echo "uploading config..."
     # upload config
@@ -21,6 +21,8 @@ function deploy {
     echo "waiting for the experiment..."
     # wait for the end of experiment
     ansible-playbook -i hosts playbooks/wait-endof-experiment.yml
+
+    rm "$experimentConfig"
 }
 
 
