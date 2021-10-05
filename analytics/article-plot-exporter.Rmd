@@ -55,13 +55,12 @@ printMeanBarChart <- function(df){
   p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Mean, group=ConcurrencyConstant, color=factor(ConcurrencyConstant))) +
     geom_line(aes( linetype=factor(ConcurrencyConstant), color=factor(ConcurrencyConstant) ))+
     geom_point() +
-    labs( x = "Macro Block Size (MB)", y = "Mean Elapsed Time (ms)", color = "CC", linetype="CC" )+
+    labs( x = "Macro Block Size (MB)", y = "Mean Elapsed Time (ms)", color = "Cl", linetype="Cl" )+
     theme_bw() + theme(legend.position="top",legend.box="vertical", legend.margin=margin())+
     scale_x_continuous(labels = as.character(grouped_df$MacroBlockSize), breaks = grouped_df$MacroBlockSize) +
     expand_limits(x = 0, y = 0)
   
-  
-  
+
   t <- kable(grouped_df, n=100)
 
   return( list("plot" = p , "table" = t ))
@@ -84,13 +83,11 @@ printMeanBarChartThroughput <- function(df){
   p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Mean, group=ConcurrencyConstant, color=factor(ConcurrencyConstant))) +
     geom_line(aes( linetype=factor(ConcurrencyConstant), color=factor(ConcurrencyConstant) ))+
     geom_point() +
-    labs( x = "Macro Block Size (MB)", y = "Mean Throughput (KB/Second)", color = "CC", linetype="CC" )+
+    labs( x = "Macro Block Size (MB)", y = "Mean Throughput (KB/Second)", color = "Cl", linetype="Cl" )+
     theme_bw() + theme(legend.position="top",legend.box="vertical", legend.margin=margin())+
     scale_x_continuous(labels = as.character(grouped_df$MacroBlockSize), breaks = grouped_df$MacroBlockSize) +
-    expand_limits(x = 0, y = 0)
-   
-  
-  
+    expand_limits(x = 0, y = 0) 
+    
   
   t <- kable(grouped_df, n=100)
 
@@ -150,45 +147,4 @@ result$plot
 result$table
 
 dev.off()
-```
-
-
-\newpage
-## Propose Time
-
-```{r, echo=FALSE, fig.height=4, warning=FALSE}
-
-result=printMeanBarChart(proposedDF)
-result$plot
-result$table
-```
-
-\newpage
-## Block Receive Time
-
-```{r, echo=FALSE, fig.height=4, warning=FALSE}
-
-result=printMeanBarChart(blockReceivedDF)
-result$plot
-result$table
-```
-
-\newpage
-## Echo Time
-
-```{r, echo=FALSE, fig.height=4,  warning=FALSE}
-
-result=printMeanBarChart(echoDF)
-result$plot
-result$table
-```
-
-\newpage
-## Accept Time
-
-```{r, echo=FALSE, fig.height=4, warning=FALSE}
-
-result=printMeanBarChart(acceptDF)
-result$plot
-result$table
 ```
