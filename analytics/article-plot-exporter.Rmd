@@ -4,7 +4,7 @@ author: "Kadir Korkmaz"
 date: "July 12, 2021"
 output: pdf_document
 knit: (function(inputFile, encoding) { 
-      workingDir <- '/Users/kadir/Downloads/rapidchain_cost_added_128_chunkfinal';
+      workingDir <- '/home/kadir/Desktop/rapidchain_cost_added_128_chunkfinal';
       rmarkdown::render(inputFile,
                         encoding=encoding,
                         knit_root_dir = workingDir,
@@ -39,7 +39,7 @@ printConfidenceInterval <- function(column) {
 }
 
 
-printMeanBarChart <- function(df){
+printChartLatency <- function(df){
     
   grouped_df <- df %>% 
                   group_by(MacroBlockSize, ConcurrencyConstant ) %>%
@@ -52,10 +52,10 @@ printMeanBarChart <- function(df){
                     Max = max(ElapsedTime)
                   )
   
-  p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Mean, group=ConcurrencyConstant, color=factor(ConcurrencyConstant))) +
+  p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Median, group=ConcurrencyConstant, color=factor(ConcurrencyConstant))) +
     geom_line(aes( linetype=factor(ConcurrencyConstant), color=factor(ConcurrencyConstant) ))+
     geom_point() +
-    labs( x = "Macro Block Size (MB)", y = "Mean Elapsed Time (ms)", color = "Cl", linetype="Cl" )+
+    labs( x = "Macroblock Size (MB)", y = "Median Round Latency (Seconds)", color = "Cl", linetype="Cl" )+
     theme_bw() + theme(legend.position="top",legend.box="vertical", legend.margin=margin())+
     scale_x_continuous(labels = as.character(grouped_df$MacroBlockSize), breaks = grouped_df$MacroBlockSize) +
     expand_limits(x = 0, y = 0)
@@ -67,7 +67,7 @@ printMeanBarChart <- function(df){
 }
 
 
-printMeanBarChartThroughput <- function(df){
+printChartThroughput <- function(df){
     
   grouped_df <- df %>% 
                   group_by(MacroBlockSize, ConcurrencyConstant ) %>%
@@ -80,10 +80,37 @@ printMeanBarChartThroughput <- function(df){
                     Max = max(ElapsedTime)
                   )
   
-  p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Mean, group=ConcurrencyConstant, color=factor(ConcurrencyConstant))) +
+  p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Median, group=ConcurrencyConstant, color=factor(ConcurrencyConstant))) +
     geom_line(aes( linetype=factor(ConcurrencyConstant), color=factor(ConcurrencyConstant) ))+
     geom_point() +
-    labs( x = "Macro Block Size (MB)", y = "Mean Throughput (KB/Second)", color = "Cl", linetype="Cl" )+
+    labs( x = "Macroblock Size (MB)", y = "Median Throughput (KB/Second)", color = "Cl", linetype="Cl" )+
+    theme_bw() + theme(legend.position="top",legend.box="vertical", legend.margin=margin())+
+    scale_x_continuous(labels = as.character(grouped_df$MacroBlockSize), breaks = grouped_df$MacroBlockSize) +
+    expand_limits(x = 0, y = 0) 
+    
+  
+  t <- kable(grouped_df, n=100)
+
+  return( list("plot" = p , "table" = t ))
+}
+
+printChartDissemination <- function(df){
+    
+  grouped_df <- df %>% 
+                  group_by(MacroBlockSize, ConcurrencyConstant ) %>%
+                  summarise(
+                    Min = min(ElapsedTime),
+                    Q1 = quantile(ElapsedTime, 0.25),
+                    Median = median(ElapsedTime),
+                    Mean = mean(ElapsedTime),
+                    Q3 = quantile(ElapsedTime, 0.75),
+                    Max = max(ElapsedTime)
+                  )
+  
+  p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Median, group=ConcurrencyConstant, color=factor(ConcurrencyConstant))) +
+    geom_line(aes( linetype=factor(ConcurrencyConstant), color=factor(ConcurrencyConstant) ))+
+    geom_point() +
+    labs( x = "Macroblock Size (MB)", y = "Median Block Dissemination Time (Seconds)", color = "Cl", linetype="Cl" )+
     theme_bw() + theme(legend.position="top",legend.box="vertical", legend.margin=margin())+
     scale_x_continuous(labels = as.character(grouped_df$MacroBlockSize), breaks = grouped_df$MacroBlockSize) +
     expand_limits(x = 0, y = 0) 
@@ -114,18 +141,17 @@ throughputDf <-data.frame(endOfRound)
 
 ```{r, echo=FALSE, fig.height=4, warning=FALSE}
 
-pdf(file = "/Users/kadir/Downloads/rapidchain_cost_added_128_chunkfinal/latency.pdf", height = 4, width = 6)
+pdf(file = "/home/kadir/Desktop/rapidchain_cost_added_128_chunkfinal/rapidchain_lat.pdf", height = 4, width = 6)
 
+endOfRound$ElapsedTime <- endOfRound$ElapsedTime/1000
 endOfRound$MacroBlockSize <- endOfRound$MacroBlockSize/1000000
-result=printMeanBarChart(endOfRound)
+result=printChartLatency(endOfRound)
 result$plot
 result$table
 
 dev.off()
 
 head(endOfRound)
-
-
 
 ```
 
@@ -135,14 +161,32 @@ head(endOfRound)
 
 ```{r, echo=FALSE, fig.height=4, warning=FALSE}
 
-pdf(file = "/Users/kadir/Downloads/rapidchain_cost_added_128_chunkfinal/throughput.pdf", height = 4, width = 6)
+pdf(file = "/home/kadir/Desktop/rapidchain_cost_added_128_chunkfinal/rapidchain_thr.pdf", height = 4, width = 6)
 
 throughputDf$ElapsedTime <-(throughputDf$MacroBlockSize/1000.0) / (throughputDf$ElapsedTime/1000.0)
 
 
 throughputDf$MacroBlockSize <- throughputDf$MacroBlockSize/1000000
 
-result=printMeanBarChartThroughput(throughputDf)
+result=printChartThroughput(throughputDf)
+result$plot
+result$table
+
+dev.off()
+```
+
+\newpage
+## Block Dissemination
+
+```{r, echo=FALSE, fig.height=4, warning=FALSE}
+
+pdf(file = "/home/kadir/Desktop/rapidchain_cost_added_128_chunkfinal/rapidchain_dissemination.pdf", height = 4, width = 6)
+
+
+blockReceivedDF$ElapsedTime <- blockReceivedDF$ElapsedTime/1000
+blockReceivedDF$MacroBlockSize <- blockReceivedDF$MacroBlockSize/1000000
+
+result=printChartDissemination(blockReceivedDF)
 result$plot
 result$table
 
