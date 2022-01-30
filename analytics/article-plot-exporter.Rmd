@@ -52,7 +52,7 @@ printChartLatency <- function(df){
                     Max = max(ElapsedTime)
                   )
   
-  p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Median, group=ConcurrencyConstant, color=factor(ConcurrencyConstant))) +
+  p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Median, group=ConcurrencyConstant)) +
     geom_line(aes( linetype=factor(ConcurrencyConstant), color=factor(ConcurrencyConstant) ))+
     geom_point() +
     labs( x = "Macroblock Size (MB)", y = "Median Round Latency (Seconds)", color = "Cl", linetype="Cl" )+
@@ -80,7 +80,7 @@ printChartThroughput <- function(df){
                     Max = max(ElapsedTime)
                   )
   
-  p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Median, group=ConcurrencyConstant, color=factor(ConcurrencyConstant))) +
+  p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Median, group=ConcurrencyConstant)) +
     geom_line(aes( linetype=factor(ConcurrencyConstant), color=factor(ConcurrencyConstant) ))+
     geom_point() +
     labs( x = "Macroblock Size (MB)", y = "Median Throughput (KB/Second)", color = "Cl", linetype="Cl" )+
@@ -107,7 +107,7 @@ printChartDissemination <- function(df){
                     Max = max(ElapsedTime)
                   )
   
-  p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Median, group=ConcurrencyConstant, color=factor(ConcurrencyConstant))) +
+  p <- ggplot(grouped_df, aes(x=MacroBlockSize, y=Median, group=ConcurrencyConstant)) +
     geom_line(aes( linetype=factor(ConcurrencyConstant), color=factor(ConcurrencyConstant) ))+
     geom_point() +
     labs( x = "Macroblock Size (MB)", y = "Median Block Dissemination Time (Seconds)", color = "Cl", linetype="Cl" )+
